@@ -7,12 +7,14 @@
     </style>
 
     <style name="PageTab">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">28dp</item>
-        <item name="android:layout_marginEnd">4dp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">30dp</item>
+        <item name="android:layout_marginEnd">6dp</item>
         <item name="android:gravity">center</item>
-        <item name="android:paddingStart">12dp</item>
-        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:singleLine">true</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/page_tab_text</item>
         <item name="android:background">@drawable/page_tab_button</item>

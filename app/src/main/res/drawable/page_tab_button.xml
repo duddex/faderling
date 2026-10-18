@@ -4,18 +4,21 @@
         <shape android:shape="rectangle">
             <corners android:radius="6dp" />
             <solid android:color="@color/accent" />
+            <stroke android:width="1dp" android:color="@color/accent" />
         </shape>
     </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <corners android:radius="6dp" />
-            <solid android:color="#FF404552" />
+            <solid android:color="#FF5A606D" />
+            <stroke android:width="1dp" android:color="#FF8A909C" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="6dp" />
-            <solid android:color="#FF2A2E36" />
+            <solid android:color="#FF3A3F4A" />
+            <stroke android:width="1dp" android:color="#FF5A606D" />
         </shape>
     </item>
 </selector>
