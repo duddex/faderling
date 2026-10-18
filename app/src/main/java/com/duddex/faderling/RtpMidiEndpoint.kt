@@ -12,7 +12,6 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetSocketAddress
 import java.net.SocketException
-import java.nio.ByteBuffer
 import java.util.Random
 
 /**
@@ -87,17 +86,7 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
     fun sendControlChange(channel: Int, cc: Int, value: Int) {
         handler?.post {
             if (peers.isEmpty()) return@post
-            val packet = ByteBuffer.allocate(16)
-                .put(0x80.toByte())
-                .put(0x61)
-                .putShort((sequence++ and 0xFFFF).toShort())
-                .putInt(now().toInt())
-                .putInt(ssrc)
-                .put(0x03)
-                .put((0xB0 or ((channel - 1) and 0x0F)).toByte())
-                .put((cc and 0x7F).toByte())
-                .put((value and 0x7F).toByte())
-                .array()
+            val packet = AppleMidi.controlChangePacket(sequence++ and 0xFFFF, now().toInt(), ssrc, channel, cc, value)
             peers.values.forEach { p -> p.data?.let { send(dataSocket, packet, it) } }
         }
     }
@@ -138,72 +127,47 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
     }
 
     private fun onPacket(bytes: ByteArray, from: InetSocketAddress, isData: Boolean) {
-        if (bytes.size < 4 || bytes[0] != 0xFF.toByte() || bytes[1] != 0xFF.toByte()) return
-        val buf = ByteBuffer.wrap(bytes)
-        buf.position(2)
-        when (buf.short.toInt()) {
-            CMD_INVITATION -> onInvitation(buf, bytes, from, isData)
-            CMD_CLOCK_SYNC -> if (isData) onClockSync(buf, from)
-            CMD_BYE -> onBye(buf)
+        when (AppleMidi.command(bytes)) {
+            AppleMidi.CMD_INVITATION -> AppleMidi.parseSession(bytes)?.let { onInvitation(it, from, isData) }
+            AppleMidi.CMD_CLOCK_SYNC -> if (isData) AppleMidi.parseClockSync(bytes)?.let { onClockSync(it, from) }
+            AppleMidi.CMD_BYE -> AppleMidi.parseSession(bytes)?.let { onBye(it) }
         }
     }
 
-    private fun onInvitation(buf: ByteBuffer, bytes: ByteArray, from: InetSocketAddress, isData: Boolean) {
-        if (bytes.size < 16) return
-        val version = buf.int
-        val token = buf.int
-        val peerSsrc = buf.int
-        val name = String(bytes, 16, bytes.size - 16, Charsets.UTF_8).substringBefore('\u0000')
+    private fun onInvitation(invitation: AppleMidi.SessionMessage, from: InetSocketAddress, isData: Boolean) {
+        val token = invitation.token
         val socket = if (isData) dataSocket else controlSocket
 
-        if (version != PROTOCOL_VERSION) {
-            send(socket, sessionPacket(CMD_REJECT, token), from)
+        if (invitation.version != AppleMidi.PROTOCOL_VERSION) {
+            send(socket, sessionPacket(AppleMidi.CMD_REJECT, token), from)
             return
         }
 
         if (isData) {
-            val peer = peers[peerSsrc]
+            val peer = peers[invitation.ssrc]
             if (peer == null) {
-                send(socket, sessionPacket(CMD_REJECT, token), from)
+                send(socket, sessionPacket(AppleMidi.CMD_REJECT, token), from)
                 return
             }
             peer.data = from
             peer.lastSeen = SystemClock.elapsedRealtime()
-            send(socket, sessionPacket(CMD_ACCEPT, token, includeName = true), from)
+            send(socket, sessionPacket(AppleMidi.CMD_ACCEPT, token, includeName = true), from)
             notifySessions()
         } else {
-            peers[peerSsrc] = Peer(peerSsrc, name.ifEmpty { from.address.hostAddress ?: "?" }, token, from)
-            send(socket, sessionPacket(CMD_ACCEPT, token, includeName = true), from)
+            val name = invitation.name.ifEmpty { from.address.hostAddress ?: "?" }
+            peers[invitation.ssrc] = Peer(invitation.ssrc, name, token, from)
+            send(socket, sessionPacket(AppleMidi.CMD_ACCEPT, token, includeName = true), from)
         }
     }
 
-    private fun onClockSync(buf: ByteBuffer, from: InetSocketAddress) {
-        if (buf.remaining() < 32) return
-        val peerSsrc = buf.int
-        val count = buf.get().toInt()
-        buf.position(buf.position() + 3)
-        val ts1 = buf.long
-        peers[peerSsrc]?.lastSeen = SystemClock.elapsedRealtime()
-        if (count != 0) return
-        val reply = ByteBuffer.allocate(36)
-            .putShort(0xFFFF.toShort())
-            .putShort(CMD_CLOCK_SYNC.toShort())
-            .putInt(ssrc)
-            .put(1)
-            .put(ByteArray(3))
-            .putLong(ts1)
-            .putLong(now())
-            .putLong(0)
-            .array()
-        send(dataSocket, reply, from)
+    private fun onClockSync(sync: AppleMidi.ClockSync, from: InetSocketAddress) {
+        peers[sync.ssrc]?.lastSeen = SystemClock.elapsedRealtime()
+        if (sync.count != 0) return
+        send(dataSocket, AppleMidi.clockSyncReply(ssrc, sync.timestamp1, now()), from)
     }
 
-    private fun onBye(buf: ByteBuffer) {
-        if (buf.remaining() < 12) return
-        buf.int
-        buf.int
-        val peerSsrc = buf.int
-        if (peers.remove(peerSsrc) != null) notifySessions()
+    private fun onBye(bye: AppleMidi.SessionMessage) {
+        if (peers.remove(bye.ssrc) != null) notifySessions()
     }
 
     private fun checkTimeouts() {
@@ -217,20 +181,11 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
     }
 
     private fun sendBye(peer: Peer) {
-        send(controlSocket, sessionPacket(CMD_BYE, peer.token), peer.control)
+        send(controlSocket, sessionPacket(AppleMidi.CMD_BYE, peer.token), peer.control)
     }
 
-    private fun sessionPacket(command: Int, token: Int, includeName: Boolean = false): ByteArray {
-        val name = if (includeName) serviceName.toByteArray(Charsets.UTF_8) + 0.toByte() else ByteArray(0)
-        return ByteBuffer.allocate(16 + name.size)
-            .putShort(0xFFFF.toShort())
-            .putShort(command.toShort())
-            .putInt(PROTOCOL_VERSION)
-            .putInt(token)
-            .putInt(ssrc)
-            .put(name)
-            .array()
-    }
+    private fun sessionPacket(command: Int, token: Int, includeName: Boolean = false): ByteArray =
+        AppleMidi.sessionPacket(command, token, ssrc, if (includeName) serviceName else null)
 
     private fun send(socket: DatagramSocket?, bytes: ByteArray, to: InetSocketAddress) {
         try {
@@ -275,12 +230,6 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
         const val TAG = "RtpMidi"
         const val SERVICE_TYPE = "_apple-midi._udp"
         const val PREFERRED_PORT = 5004
-        const val PROTOCOL_VERSION = 2
-        const val CMD_INVITATION = 0x494E
-        const val CMD_ACCEPT = 0x4F4B
-        const val CMD_REJECT = 0x4E4F
-        const val CMD_BYE = 0x4259
-        const val CMD_CLOCK_SYNC = 0x434B
         const val PEER_TIMEOUT_MS = 60_000L
         const val TIMEOUT_CHECK_MS = 5_000L
     }

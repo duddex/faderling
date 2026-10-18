@@ -57,11 +57,14 @@ class ButtonView(context: Context) : View(context) {
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (mode == ButtonMode.MOMENTARY) setOn(false)
+                if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
                 listener?.onControlReleased(this, value)
             }
         }
         return true
     }
+
+    override fun performClick(): Boolean = super.performClick()
 
     /** Turns the Button off without notifying the listener; returns whether it was on. */
     fun reset(): Boolean {

@@ -1,5 +1,7 @@
 # Faderling
 
+[![CI](https://github.com/duddex/faderling/actions/workflows/ci.yml/badge.svg)](https://github.com/duddex/faderling/actions/workflows/ci.yml)
+
 An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs and 8 buttons – sending MIDI Control Change (CC) messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
 
 ![Faders Page](docs/images/faders.png)
@@ -35,6 +37,14 @@ Requires the Android SDK (`ANDROID_HOME` or `local.properties` with `sdk.dir`) a
 .\gradlew.bat assembleDebug
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
+
+Unit tests and lint:
+
+```powershell
+.\gradlew.bat testDebugUnitTest lintDebug
+```
+
+Every push and pull request is built by [GitHub Actions](https://github.com/duddex/faderling/actions/workflows/ci.yml); the debug APK can be downloaded from each run's artifacts.
 
 ## Connect on Windows
 

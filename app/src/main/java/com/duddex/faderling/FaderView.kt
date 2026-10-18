@@ -94,11 +94,14 @@ class FaderView(context: Context) : View(context) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 touching = false
                 invalidate()
+                if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
                 if (gliding) releasePending = true else listener?.onControlReleased(this, value)
             }
         }
         return true
     }
+
+    override fun performClick(): Boolean = super.performClick()
 
     private fun valueAtY(y: Float): Float {
         updateTrackRect()

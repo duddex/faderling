@@ -95,11 +95,14 @@ class KnobView(context: Context) : View(context) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 touching = false
                 invalidate()
+                if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
                 listener?.onControlReleased(this, value)
             }
         }
         return true
     }
+
+    override fun performClick(): Boolean = super.performClick()
 
     private companion object {
         const val START_ANGLE = 135f
