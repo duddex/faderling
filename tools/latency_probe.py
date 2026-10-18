@@ -25,7 +25,10 @@ data = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); data.bind(("", ctrl.get
 for sock, p in ((ctrl, port), (data, port + 1)):
     sock.settimeout(2)
     sock.sendto(struct.pack(">HHIII", 0xFFFF, 0x494E, 2, token, ssrc) + b"Latency\0", (host, p))
-    sock.recvfrom(1024)
+    try:
+        sock.recvfrom(1024)
+    except socket.timeout:
+        sys.exit(f"No answer from {host}:{p} - is Faderling open in the foreground on the tablet?")
 
 rtts, samples, lost = [], [], 0
 data.settimeout(1)
