@@ -3,6 +3,9 @@ package com.duddex.faderling
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -11,6 +14,8 @@ import android.widget.TextView
 class MainActivity : Activity(), FaderView.Listener {
 
     private lateinit var store: AssignmentStore
+    private lateinit var endpoint: RtpMidiEndpoint
+    private val handler = Handler(Looper.getMainLooper())
     private lateinit var sessionStatus: TextView
     private val faders = mutableListOf<FaderView>()
     private var assignments: List<Assignment> = emptyList()
@@ -33,6 +38,7 @@ class MainActivity : Activity(), FaderView.Listener {
             container.addView(fader, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
             faders += fader
         }
+        endpoint = (application as FaderlingApp).endpoint
         showSession(null)
     }
 
@@ -40,6 +46,16 @@ class MainActivity : Activity(), FaderView.Listener {
         super.onResume()
         assignments = store.loadAll()
         faders.forEachIndexed { i, fader -> fader.name = assignments[i].name }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        endpoint.listener = RtpMidiEndpoint.SessionsListener { names -> showSession(names.takeIf { it.isNotEmpty() }?.joinToString(", ")) }
+    }
+
+    override fun onStop() {
+        endpoint.listener = null
+        super.onStop()
     }
 
     private fun showSession(peerName: String?) {
@@ -53,8 +69,20 @@ class MainActivity : Activity(), FaderView.Listener {
     }
 
     override fun onFaderMoved(fader: FaderView, value: Int) {
+        handler.removeCallbacksAndMessages(fader)
+        send(fader, value)
     }
 
     override fun onFaderReleased(fader: FaderView, value: Int) {
+        handler.postAtTime({ send(fader, value) }, fader, SystemClock.uptimeMillis() + RESEND_DELAY_MS)
+    }
+
+    private fun send(fader: FaderView, value: Int) {
+        val a = assignments.getOrNull(faders.indexOf(fader)) ?: return
+        endpoint.sendControlChange(a.channel, a.cc, value)
+    }
+
+    private companion object {
+        const val RESEND_DELAY_MS = 150L
     }
 }
