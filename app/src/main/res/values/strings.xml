@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Faderling</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="session_none">Not connected</string>
+    <string name="session_connected">Session: %1$s</string>
+    <string name="fader_number">Fader %1$d</string>
+    <string name="label_name">Name</string>
+    <string name="label_cc">CC</string>
+    <string name="label_channel">Channel</string>
+    <string name="error_cc">0–127</string>
+    <string name="error_channel">1–16</string>
+    <string name="warning_duplicate">Same CC and channel as fader %1$s</string>
 </resources>
