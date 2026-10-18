@@ -85,6 +85,10 @@ Python 3, standard library only:
   ```powershell
   python tools\rtpmidi_probe.py <tablet-ip>
   ```
+- `tools/latency_probe.py` – measures the network latency to the tablet: 200 clock-sync round trips, then the send → arrival time of every MIDI packet while you play. It connects as its own Session, so rtpMIDI can stay connected.
+  ```powershell
+  python tools\latency_probe.py <tablet-ip>
+  ```
 
 ## Documentation
 
