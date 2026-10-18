@@ -25,7 +25,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 - Every Control re-sends its final value shortly after release, to make up for lost Wi-Fi packets
 - Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
 - Default CCs: faders 20–29, knobs 102–109, buttons 110–117, all on channel 1
-- Advertises itself as **Faderling** via Bonjour; the receiver starts the Session
+- Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
 - Session status shown on the main screen
 - Runs on Android 5.1 (API 22) and newer
 
@@ -51,12 +51,20 @@ Every push and pull request is built by [GitHub Actions](https://github.com/dudd
 1. Install [rtpMIDI](https://www.tobias-erichsen.de/software/rtpmidi.html) by Tobias Erichsen.
 2. Start Faderling on the tablet (same Wi-Fi network as the PC).
 3. In rtpMIDI, create a session under *My Sessions* (**+**) and enable it.
-4. Select **Faderling** in the *Directory* list and click **Connect**. The tablet shows `Session: <PC name>`.
+4. Select **Faderling &lt;model&gt;** (e.g. *Faderling TB305FU*) in the *Directory* list and click **Connect**. The tablet shows `Session: <PC name>`.
 5. In your DAW, enable the rtpMIDI session port as a MIDI input.
 
 On macOS, use *Audio MIDI Setup → MIDI Network Setup* instead of rtpMIDI.
 
 When the app is closed or restarted the Session ends; click **Connect** in rtpMIDI again.
+
+## Known issues
+
+- **Lenovo tablets (ZUI): pressing three Controls at once takes a screenshot.** Lenovo's three-finger system gestures (swipe down = screenshot, swipe up, spread = split screen, …) are handled by the system before the app sees the touches, and apps cannot turn them off. Disable them on the tablet under *Settings → System → Gestures* (the exact menu depends on the ZUI version), or via ADB:
+  ```powershell
+  adb shell settings put system three_finger_slide_down_enabled 0
+  ```
+  Other manufacturers have similar multi-finger gestures; disable them if they get in the way.
 
 ## Tools
 

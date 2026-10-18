@@ -20,6 +20,10 @@ import java.util.Random
  */
 class RtpMidiEndpoint(context: Context, private val serviceName: String) {
 
+    /** Name actually registered via Bonjour; Android appends " (2)" etc. when [serviceName] is taken. */
+    @Volatile
+    private var advertisedName = serviceName
+
     fun interface SessionsListener {
         fun onSessionsChanged(peerNames: List<String>)
     }
@@ -185,7 +189,7 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
     }
 
     private fun sessionPacket(command: Int, token: Int, includeName: Boolean = false): ByteArray =
-        AppleMidi.sessionPacket(command, token, ssrc, if (includeName) serviceName else null)
+        AppleMidi.sessionPacket(command, token, ssrc, if (includeName) advertisedName else null)
 
     private fun send(socket: DatagramSocket?, bytes: ByteArray, to: InetSocketAddress) {
         try {
@@ -211,6 +215,7 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
         }
         val l = object : NsdManager.RegistrationListener {
             override fun onServiceRegistered(info: NsdServiceInfo) {
+                advertisedName = info.serviceName ?: serviceName
                 Log.i(TAG, "Advertised as ${info.serviceName} on port $port")
             }
             override fun onRegistrationFailed(info: NsdServiceInfo, errorCode: Int) {

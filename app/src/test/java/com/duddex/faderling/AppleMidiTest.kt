@@ -17,6 +17,21 @@ class AppleMidiTest {
             .array()
 
     @Test
+    fun `service name combines app name and device model`() {
+        assertEquals("Faderling TB305FU", AppleMidi.serviceName("Faderling", "TB305FU"))
+        assertEquals("Faderling KFAUWI", AppleMidi.serviceName("Faderling", " KFAUWI "))
+        assertEquals("Faderling", AppleMidi.serviceName("Faderling", null))
+        assertEquals("Faderling", AppleMidi.serviceName("Faderling", ""))
+    }
+
+    @Test
+    fun `service name fits the 63 byte DNS-SD limit`() {
+        val name = AppleMidi.serviceName("Faderling", "Ä".repeat(60))
+        assertEquals(true, name.toByteArray(Charsets.UTF_8).size <= 63)
+        assertEquals(true, name.startsWith("Faderling Ä"))
+    }
+
+    @Test
     fun `parses an invitation`() {
         val message = AppleMidi.parseSession(invitation())!!
         assertEquals(AppleMidi.CMD_INVITATION, message.command)

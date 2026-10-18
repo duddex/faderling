@@ -15,6 +15,14 @@ object AppleMidi {
 
     class ClockSync(val ssrc: Int, val count: Int, val timestamp1: Long)
 
+    /** Bonjour name of this device, e.g. "Faderling TB305FU"; DNS-SD limits instance names to 63 bytes. */
+    fun serviceName(appName: String, model: String?): String {
+        val name = listOf(appName, model?.trim().orEmpty()).filter { it.isNotEmpty() }.joinToString(" ")
+        var result = name
+        while (result.toByteArray(Charsets.UTF_8).size > 63) result = result.dropLast(1)
+        return result.trimEnd()
+    }
+
     /** Returns the AppleMIDI command of a session-control packet, or null for anything else. */
     fun command(bytes: ByteArray): Int? {
         if (bytes.size < 4 || bytes[0] != 0xFF.toByte() || bytes[1] != 0xFF.toByte()) return null
