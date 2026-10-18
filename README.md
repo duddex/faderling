@@ -2,6 +2,17 @@
 
 An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs and 8 buttons – sending MIDI Control Change (CC) messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
 
+![Faders Page](docs/images/faders.png)
+
+![Knobs & Buttons Page](docs/images/knobs-buttons.png)
+
+<details>
+<summary>Settings screen</summary>
+
+![Settings](docs/images/settings.png)
+
+</details>
+
 ## Features
 
 - Two Pages, switched with the tabs in the top bar:
