@@ -1,11 +1,11 @@
 """Fader monitor: shows every Control Change arriving on a MIDI input port as a fader.
 
-Pick the rtpMIDI session port (e.g. "X390") to see what Faderling sends through rtpMIDI.
+Pick the rtpMIDI session port (named like the rtpMIDI session) to see what Faderling sends through rtpMIDI.
 Windows only (uses the system MIDI API via ctypes); no extra packages needed.
 
 Usage:
   python tools/fader_monitor.py            # choose the input port in the window
-  python tools/fader_monitor.py X390       # open the first port whose name contains "X390"
+  python tools/fader_monitor.py "My Session"  # open the first port whose name contains "My Session"
   python tools/fader_monitor.py --list     # list MIDI input ports
 """
 import ctypes

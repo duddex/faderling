@@ -39,11 +39,11 @@ Python 3, standard library only:
 - `tools/fader_monitor.py` – shows every CC arriving on a MIDI input port (e.g. the rtpMIDI session port) as a fader. Windows only.
   ```powershell
   python tools\fader_monitor.py --list
-  python tools\fader_monitor.py X390
+  python tools\fader_monitor.py "My Session"
   ```
 - `tools/rtpmidi_probe.py` – connects to the tablet directly as an RTP-MIDI initiator and prints received CC messages; useful without rtpMIDI.
   ```powershell
-  python tools\rtpmidi_probe.py 192.168.2.123
+  python tools\rtpmidi_probe.py <tablet-ip>
   ```
 
 ## Documentation
