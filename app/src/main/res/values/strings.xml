@@ -7,6 +7,13 @@
     <string name="page_faders">Faders</string>
     <string name="page_knobs_buttons">Knobs &amp; Buttons</string>
     <string name="page_keyboard">Keyboard</string>
+    <string name="page_pads">Pads</string>
+    <string name="section_pads">Pads</string>
+    <string name="pad_number">Pad %1$d</string>
+    <string name="pads_all">All Pads</string>
+    <string name="pads_hint">Pad 1 is bottom left, counting left to right, bottom to top.</string>
+    <string name="label_note">Note</string>
+    <string name="error_note">0–127</string>
     <string name="octave_down">Oct −</string>
     <string name="octave_up">Oct +</string>
     <string name="keyboard_range">%1$s – %2$s</string>

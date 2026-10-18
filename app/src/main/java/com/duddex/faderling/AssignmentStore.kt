@@ -43,4 +43,34 @@ class AssignmentStore(context: Context) {
             .putInt("keyboard_velocity", settings.velocity)
             .apply()
     }
+
+    fun loadPads(): List<PadAssignment> = (0 until Pads.COUNT).map { i ->
+        val default = Pads.default(i)
+        PadAssignment(
+            name = prefs.getString("pad_name_$i", null) ?: default.name,
+            note = prefs.getInt("pad_note_$i", default.note),
+        )
+    }
+
+    fun savePad(index: Int, pad: PadAssignment) {
+        prefs.edit()
+            .putString("pad_name_$index", pad.name)
+            .putInt("pad_note_$index", pad.note)
+            .apply()
+    }
+
+    fun loadPadSettings(): PadSettings {
+        val default = PadSettings()
+        return PadSettings(
+            channel = prefs.getInt("pads_channel", default.channel),
+            velocity = prefs.getInt("pads_velocity", default.velocity),
+        )
+    }
+
+    fun savePadSettings(settings: PadSettings) {
+        prefs.edit()
+            .putInt("pads_channel", settings.channel)
+            .putInt("pads_velocity", settings.velocity)
+            .apply()
+    }
 }

@@ -2,13 +2,15 @@
 
 [![CI](https://github.com/duddex/faderling/actions/workflows/ci.yml/badge.svg)](https://github.com/duddex/faderling/actions/workflows/ci.yml)
 
-An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs, 8 buttons and a two-octave keyboard – sending MIDI Control Change (CC) and note messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
+An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs, 8 buttons, a two-octave keyboard and 16 MPC-style drum pads – sending MIDI Control Change (CC) and note messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
 
 ![Faders Page](docs/images/faders.png)
 
 ![Knobs & Buttons Page](docs/images/knobs-buttons.png)
 
 ![Keyboard Page](docs/images/keyboard.png)
+
+![Pads Page](docs/images/pads.png)
 
 <details>
 <summary>Settings screen</summary>
@@ -19,14 +21,15 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 
 ## Features
 
-- Three Pages, switched with the tabs in the top bar:
+- Four Pages, switched with the tabs in the top bar:
   - **Faders**: 10 vertical faders that glide to the touched position instead of jumping
   - **Knobs & Buttons**: two rows of 4 knobs (drag up/down, relative, no jumps) above a row of 8 square buttons
   - **Keyboard**: 25 keys (two octaves, C to C) sending Note On/Note Off; chords and sliding across keys (glissando); *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72)
+  - **Pads**: 4×4 MPC-style drum pads sending Note On/Note Off on channel 10, laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left); every touch retriggers (two-finger rolls), sliding onto other Pads does nothing
 - Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off
 - 7-bit CC (0–127), send-only, landscape
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
-- Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), plus Keyboard channel and velocity (default 100), edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
+- Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), plus Keyboard channel and velocity (default 100) and per-Pad name and note with a shared Pad channel and velocity, edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
 - Default CCs: faders 20–29, knobs 102–109, buttons 110–117, all on channel 1
 - Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
 - Session status shown on the main screen
@@ -63,7 +66,7 @@ When the app is closed or restarted the Session ends; click **Connect** in rtpMI
 
 ## Known issues
 
-- **Lenovo tablets (ZUI): pressing three Controls or Keys at once takes a screenshot.** Lenovo's three-finger system gestures (swipe down = screenshot, swipe up, spread = split screen, …) are handled by the system before the app sees the touches, and apps cannot turn them off. Disable them on the tablet under *Settings → System → Gestures* (the exact menu depends on the ZUI version), or via ADB:
+- **Lenovo tablets (ZUI): pressing three Controls, Keys or Pads at once takes a screenshot.** Lenovo's three-finger system gestures (swipe down = screenshot, swipe up, spread = split screen, …) are handled by the system before the app sees the touches, and apps cannot turn them off. Disable them on the tablet under *Settings → System → Gestures* (the exact menu depends on the ZUI version), or via ADB:
   ```powershell
   adb shell settings put system three_finger_slide_down_enabled 0
   ```
@@ -85,7 +88,7 @@ Python 3, standard library only:
 
 ## Documentation
 
-- [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Knob, Button, Keyboard, Key, Page, Assignment, Session)
+- [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Knob, Button, Keyboard, Key, Pad, Page, Assignment, Session)
 - [docs/adr](docs/adr) – architecture decisions
 
 ## License

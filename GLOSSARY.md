@@ -1,6 +1,6 @@
 # Faderling
 
-A tablet app that turns the screen into pages of controls and a keyboard that send MIDI messages over the network.
+A tablet app that turns the screen into pages of controls, a keyboard and drum pads that send MIDI messages over the network.
 
 ## Language
 
@@ -20,7 +20,7 @@ _Avoid_: Encoder, pot, dial
 
 **Button**:
 A Control that is either on or off and sends a CC value for each state.
-_Avoid_: Pad, switch, trigger
+_Avoid_: Switch, trigger
 
 **Momentary**:
 Button mode in which the Button is on only while it is held.
@@ -37,7 +37,7 @@ _Avoid_: Mapping, binding, config
 ### Layout
 
 **Page**:
-One screen of the app; there is a Faders Page, a Knobs & Buttons Page and a Keyboard Page.
+One screen of the app; there is a Faders Page, a Knobs & Buttons Page, a Keyboard Page and a Pads Page.
 _Avoid_: Tab, screen, view
 
 ### Keyboard
@@ -48,7 +48,17 @@ _Avoid_: Piano, keys
 
 **Key**:
 One white or black key of the Keyboard; pressing it sends Note On, releasing it sends Note Off.
-_Avoid_: Note, pad
+_Avoid_: Note
+
+### Pads
+
+**Pad**:
+One of 16 square drum pads in an MPC-style 4×4 grid; each touch sends Note On for its note, lifting the last finger sends Note Off. It is not a Control.
+_Avoid_: Drum, trigger, button
+
+**Pad Assignment**:
+The settings of one Pad: its name and note. Channel and velocity are shared by all Pads.
+_Avoid_: Pad mapping, drum map
 
 ### Connection
 

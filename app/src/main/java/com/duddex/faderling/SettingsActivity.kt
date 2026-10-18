@@ -49,6 +49,7 @@ class SettingsActivity : Activity() {
         section(list, ControlKind.KNOB, R.string.section_knobs, R.string.knob_number)
         section(list, ControlKind.BUTTON, R.string.section_buttons, R.string.button_number)
         keyboardSection(list)
+        padsSection(list)
         root.addView(ScrollView(this).apply { addView(list) }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
 
         setContentView(root)
@@ -102,6 +103,72 @@ class SettingsActivity : Activity() {
         list.addView(LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL
             addView(text(getString(R.string.page_keyboard), Palette.TEXT, 16f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(velocity, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
+        })
+    }
+
+    private fun padsSection(list: LinearLayout) {
+        list.addView(text(getString(R.string.section_pads), Palette.ACCENT, 16f).apply { setPadding(0, dp(16), 0, dp(2)) })
+        list.addView(text(getString(R.string.pads_hint), Palette.TEXT_DIM, 13f))
+        list.addView(LinearLayout(this).apply {
+            setPadding(0, dp(4), 0, 0)
+            addView(text("", Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(text(getString(R.string.label_name), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(text(getString(R.string.label_note), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(80 + MODE_WIDTH), 0))
+        })
+
+        store.loadPads().forEachIndexed { i, pad ->
+            val name = edit(pad.name, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS, Assignment.MAX_NAME_LENGTH)
+            val note = edit(pad.note.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+            val watcher = object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val n = note.text.toString().toIntOrNull()?.takeIf { it in 0..127 }
+                    note.error = if (n == null) getString(R.string.error_note) else null
+                    if (n != null) store.savePad(i, PadAssignment(name.text.toString(), n))
+                }
+            }
+            name.addTextChangedListener(watcher)
+            note.addTextChangedListener(watcher)
+            list.addView(LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(text(getString(R.string.pad_number, i + 1), Palette.TEXT, 16f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(name, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                addView(note, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(80 + MODE_WIDTH), 0))
+            })
+        }
+
+        val settings = store.loadPadSettings()
+        list.addView(LinearLayout(this).apply {
+            setPadding(0, dp(8), 0, 0)
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(0, 0, 1f))
+            addView(text(getString(R.string.label_velocity), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(text(getString(R.string.label_channel), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
+        })
+        val velocity = edit(settings.velocity.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+        val channel = edit(settings.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val v = velocity.text.toString().toIntOrNull()?.takeIf { it in KeyboardSettings.VELOCITY_RANGE }
+                val c = channel.text.toString().toIntOrNull()?.takeIf { it in Assignment.CHANNEL_RANGE }
+                velocity.error = if (v == null) getString(R.string.error_velocity) else null
+                channel.error = if (c == null) getString(R.string.error_channel) else null
+                if (v != null && c != null) store.savePadSettings(PadSettings(channel = c, velocity = v))
+            }
+        }
+        velocity.addTextChangedListener(watcher)
+        channel.addTextChangedListener(watcher)
+        list.addView(LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(text(getString(R.string.pads_all), Palette.TEXT, 16f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             addView(velocity, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
             addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
             addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))

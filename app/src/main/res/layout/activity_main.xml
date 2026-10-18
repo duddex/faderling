@@ -27,6 +27,11 @@
             style="@style/PageTab"
             android:text="@string/page_keyboard" />
 
+        <TextView
+            android:id="@+id/tabPads"
+            style="@style/PageTab"
+            android:text="@string/page_pads" />
+
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -128,5 +133,11 @@
                 android:layout_weight="1"
                 android:paddingTop="4dp" />
         </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/padsPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

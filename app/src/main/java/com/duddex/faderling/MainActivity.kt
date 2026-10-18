@@ -13,7 +13,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 
-class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
+class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGridView.Listener {
 
     private class ControlRef(val kind: ControlKind, val index: Int)
 
@@ -41,7 +41,14 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
     /** Key index → note and channel it was started with, so its Note Off matches even after an octave shift. */
     private val soundingNotes = HashMap<Int, Pair<Int, Int>>()
 
-    /** Note → pending repeat of its Note Off. */
+    private lateinit var padGrid: PadGridView
+    private var padAssignments: List<PadAssignment> = (0 until Pads.COUNT).map(Pads::default)
+    private var padSettings = PadSettings()
+
+    /** Pad index → note and channel it was started with, so its Note Off matches even if settings change. */
+    private val soundingPads = HashMap<Int, Pair<Int, Int>>()
+
+    /** channel * 128 + note → pending repeat of its Note Off. */
     private val pendingNoteOffs = HashMap<Int, Runnable>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,8 +64,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage))
-        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard).mapIndexed { page, id ->
+        pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage))
+        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads).mapIndexed { page, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(page) } }
         }
 
@@ -72,6 +79,9 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
         octaveDown = findViewById<TextView>(R.id.octaveDown).apply { setOnClickListener { shiftOctave(-1) } }
         octaveUp = findViewById<TextView>(R.id.octaveUp).apply { setOnClickListener { shiftOctave(1) } }
         showKeyboardRange()
+
+        padGrid = PadGridView(this).apply { listener = this@MainActivity }
+        findViewById<FrameLayout>(R.id.padsPage).addView(padGrid)
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
         showSession(null)
@@ -94,7 +104,10 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
     }
 
     private fun showPage(page: Int) {
-        if (page != currentPage) keyboard.releaseAll()
+        if (page != currentPage) {
+            keyboard.releaseAll()
+            padGrid.releaseAll()
+        }
         currentPage = page
         pages.forEachIndexed { i, v -> v.visibility = if (i == page) View.VISIBLE else View.GONE }
         tabs.forEachIndexed { i, t -> t.isSelected = i == page }
@@ -125,19 +138,39 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
     override fun onKeyPressed(index: Int) {
         val note = lowestNote + index
         val channel = keyboardSettings.channel
-        pendingNoteOffs.remove(note)?.let(handler::removeCallbacks)
         soundingNotes[index] = note to channel
-        endpoint.sendNoteOn(channel, note, keyboardSettings.velocity)
+        noteOn(channel, note, keyboardSettings.velocity)
     }
 
     override fun onKeyReleased(index: Int) {
         val (note, channel) = soundingNotes.remove(index) ?: return
+        noteOff(channel, note)
+    }
+
+    override fun onPadPressed(index: Int) {
+        val (note, channel) = soundingPads.getOrPut(index) { padAssignments[index].note to padSettings.channel }
+        noteOn(channel, note, padSettings.velocity)
+    }
+
+    override fun onPadReleased(index: Int) {
+        val (note, channel) = soundingPads.remove(index) ?: return
+        noteOff(channel, note)
+    }
+
+    private fun noteOn(channel: Int, note: Int, velocity: Int) {
+        pendingNoteOffs.remove(channel * 128 + note)?.let(handler::removeCallbacks)
+        endpoint.sendNoteOn(channel, note, velocity)
+    }
+
+    /** Sends Note Off now and once more shortly after, unless the same note is played again in between. */
+    private fun noteOff(channel: Int, note: Int) {
         endpoint.sendNoteOff(channel, note)
+        val key = channel * 128 + note
         val repeat = Runnable {
-            pendingNoteOffs.remove(note)
+            pendingNoteOffs.remove(key)
             endpoint.sendNoteOff(channel, note)
         }
-        pendingNoteOffs[note] = repeat
+        pendingNoteOffs.put(key, repeat)?.let(handler::removeCallbacks)
         handler.postDelayed(repeat, RESEND_DELAY_MS)
     }
 
@@ -159,10 +192,14 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
             v.mode = a.mode
         }
         keyboardSettings = store.loadKeyboard()
+        padAssignments = store.loadPads()
+        padSettings = store.loadPadSettings()
+        padGrid.names = padAssignments.map { it.name }
     }
 
     override fun onPause() {
         keyboard.releaseAll()
+        padGrid.releaseAll()
         super.onPause()
     }
 
