@@ -50,3 +50,7 @@ Python 3, standard library only:
 
 - [GLOSSARY.md](GLOSSARY.md) – domain language (Fader, Assignment, Session)
 - [docs/adr](docs/adr) – architecture decisions
+
+## License
+
+[MIT](LICENSE)
