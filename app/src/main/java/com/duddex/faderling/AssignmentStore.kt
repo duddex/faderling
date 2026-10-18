@@ -5,22 +5,27 @@ import android.content.Context
 class AssignmentStore(context: Context) {
     private val prefs = context.getSharedPreferences("assignments", Context.MODE_PRIVATE)
 
-    fun loadAll(): List<Assignment> = (0 until Assignment.FADER_COUNT).map(::load)
+    fun loadAll(kind: ControlKind): List<Assignment> = (0 until kind.count).map { load(kind, it) }
 
-    fun load(index: Int): Assignment {
-        val default = Assignment.default(index)
+    fun load(kind: ControlKind, index: Int): Assignment {
+        val default = Assignment.default(kind, index)
+        val p = kind.keyPrefix
         return Assignment(
-            name = prefs.getString("name_$index", null) ?: default.name,
-            cc = prefs.getInt("cc_$index", default.cc),
-            channel = prefs.getInt("channel_$index", default.channel),
+            name = prefs.getString("${p}name_$index", null) ?: default.name,
+            cc = prefs.getInt("${p}cc_$index", default.cc),
+            channel = prefs.getInt("${p}channel_$index", default.channel),
+            mode = prefs.getString("${p}mode_$index", null)
+                ?.let { runCatching { ButtonMode.valueOf(it) }.getOrNull() } ?: default.mode,
         )
     }
 
-    fun save(index: Int, assignment: Assignment) {
-        prefs.edit()
-            .putString("name_$index", assignment.name)
-            .putInt("cc_$index", assignment.cc)
-            .putInt("channel_$index", assignment.channel)
-            .apply()
+    fun save(kind: ControlKind, index: Int, assignment: Assignment) {
+        val p = kind.keyPrefix
+        val editor = prefs.edit()
+            .putString("${p}name_$index", assignment.name)
+            .putInt("${p}cc_$index", assignment.cc)
+            .putInt("${p}channel_$index", assignment.channel)
+        if (kind == ControlKind.BUTTON) editor.putString("${p}mode_$index", assignment.mode.name)
+        editor.apply()
     }
 }

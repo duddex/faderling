@@ -6,19 +6,30 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.view.View
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 
-class MainActivity : Activity(), FaderView.Listener {
+class MainActivity : Activity(), ControlListener {
+
+    private class ControlRef(val kind: ControlKind, val index: Int)
 
     private lateinit var store: AssignmentStore
     private lateinit var endpoint: RtpMidiEndpoint
-    private val handler = Handler(Looper.getMainLooper())
     private lateinit var sessionStatus: TextView
+    private lateinit var tabFaders: TextView
+    private lateinit var tabKnobsButtons: TextView
+    private lateinit var fadersPage: View
+    private lateinit var knobsButtonsPage: View
+    private val handler = Handler(Looper.getMainLooper())
+
     private val faders = mutableListOf<FaderView>()
-    private var assignments: List<Assignment> = emptyList()
+    private val knobs = mutableListOf<KnobView>()
+    private val buttons = mutableListOf<ButtonView>()
+    private val refs = HashMap<View, ControlRef>()
+    private var assignments: Map<ControlKind, List<Assignment>> = emptyMap()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,25 +38,63 @@ class MainActivity : Activity(), FaderView.Listener {
         findViewById<LinearLayout>(R.id.root).padForSystemBars()
 
         store = AssignmentStore(this)
+        endpoint = (application as FaderlingApp).endpoint
         sessionStatus = findViewById(R.id.sessionStatus)
         findViewById<ImageButton>(R.id.settingsButton).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        val container = findViewById<LinearLayout>(R.id.faders)
-        repeat(Assignment.FADER_COUNT) {
-            val fader = FaderView(this).apply { listener = this@MainActivity }
-            container.addView(fader, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
-            faders += fader
-        }
-        endpoint = (application as FaderlingApp).endpoint
+        fadersPage = findViewById(R.id.faders)
+        knobsButtonsPage = findViewById(R.id.knobsButtons)
+        tabFaders = findViewById<TextView>(R.id.tabFaders).apply { setOnClickListener { showPage(0) } }
+        tabKnobsButtons = findViewById<TextView>(R.id.tabKnobsButtons).apply { setOnClickListener { showPage(1) } }
+
+        addControls(findViewById(R.id.faders), ControlKind.FADER, faders) { FaderView(this).apply { listener = this@MainActivity } }
+        addControls(findViewById(R.id.knobs), ControlKind.KNOB, knobs) { KnobView(this).apply { listener = this@MainActivity } }
+        addControls(findViewById(R.id.buttons), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
+
+        showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
         showSession(null)
+    }
+
+    private fun <T : View> addControls(container: LinearLayout, kind: ControlKind, list: MutableList<T>, create: () -> T) {
+        repeat(kind.count) { i ->
+            val view = create()
+            container.addView(view, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            list += view
+            refs[view] = ControlRef(kind, i)
+        }
+    }
+
+    private fun showPage(page: Int) {
+        fadersPage.visibility = if (page == 0) View.VISIBLE else View.GONE
+        knobsButtonsPage.visibility = if (page == 1) View.VISIBLE else View.GONE
+        tabFaders.isSelected = page == 0
+        tabKnobsButtons.isSelected = page == 1
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_PAGE, if (knobsButtonsPage.visibility == View.VISIBLE) 1 else 0)
     }
 
     override fun onResume() {
         super.onResume()
-        assignments = store.loadAll()
-        faders.forEachIndexed { i, fader -> fader.name = assignments[i].name }
+        val previous = assignments
+        assignments = ControlKind.entries.associateWith { store.loadAll(it) }
+
+        faders.forEachIndexed { i, v -> v.name = assignment(ControlKind.FADER, i).name }
+        knobs.forEachIndexed { i, v -> v.name = assignment(ControlKind.KNOB, i).name }
+        buttons.forEachIndexed { i, v ->
+            val a = assignment(ControlKind.BUTTON, i)
+            val old = previous[ControlKind.BUTTON]?.getOrNull(i)
+            if (old != null && old.mode != a.mode && v.reset()) {
+                handler.removeCallbacksAndMessages(v)
+                endpoint.sendControlChange(old.channel, old.cc, ButtonView.OFF)
+            }
+            v.name = a.name
+            v.mode = a.mode
+        }
     }
 
     override fun onStart() {
@@ -68,21 +117,26 @@ class MainActivity : Activity(), FaderView.Listener {
         }
     }
 
-    override fun onFaderMoved(fader: FaderView, value: Int) {
-        handler.removeCallbacksAndMessages(fader)
-        send(fader, value)
+    override fun onControlChanged(control: View, value: Int) {
+        handler.removeCallbacksAndMessages(control)
+        send(control, value)
     }
 
-    override fun onFaderReleased(fader: FaderView, value: Int) {
-        handler.postAtTime({ send(fader, value) }, fader, SystemClock.uptimeMillis() + RESEND_DELAY_MS)
+    override fun onControlReleased(control: View, value: Int) {
+        handler.postAtTime({ send(control, value) }, control, SystemClock.uptimeMillis() + RESEND_DELAY_MS)
     }
 
-    private fun send(fader: FaderView, value: Int) {
-        val a = assignments.getOrNull(faders.indexOf(fader)) ?: return
+    private fun send(control: View, value: Int) {
+        val ref = refs[control] ?: return
+        val a = assignment(ref.kind, ref.index)
         endpoint.sendControlChange(a.channel, a.cc, value)
     }
 
+    private fun assignment(kind: ControlKind, index: Int): Assignment =
+        assignments[kind]?.getOrNull(index) ?: Assignment.default(kind, index)
+
     private companion object {
         const val RESEND_DELAY_MS = 150L
+        const val STATE_PAGE = "page"
     }
 }

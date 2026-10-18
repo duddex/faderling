@@ -2,7 +2,6 @@ package com.duddex.faderling
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.text.TextUtils
@@ -15,12 +14,7 @@ import kotlin.math.sign
 
 class FaderView(context: Context) : View(context) {
 
-    interface Listener {
-        fun onFaderMoved(fader: FaderView, value: Int)
-        fun onFaderReleased(fader: FaderView, value: Int)
-    }
-
-    var listener: Listener? = null
+    var listener: ControlListener? = null
 
     var name: String = ""
         set(v) { field = v; invalidate() }
@@ -31,17 +25,17 @@ class FaderView(context: Context) : View(context) {
     private val density = resources.displayMetrics.density
     private fun dp(v: Float) = v * density
 
-    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0x2A, 0x2E, 0x36) }
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0xFF, 0xA7, 0x26) }
-    private val fillActivePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0xFF, 0xCC, 0x80) }
-    private val thumbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0xEC, 0xEF, 0xF4) }
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.TRACK }
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.ACCENT }
+    private val fillActivePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.ACCENT_ACTIVE }
+    private val thumbPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.TEXT }
     private val valuePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.rgb(0xEC, 0xEF, 0xF4)
+        color = Palette.TEXT
         textAlign = Paint.Align.CENTER
         textSize = dp(18f)
     }
     private val namePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.rgb(0xB0, 0xB6, 0xC2)
+        color = Palette.TEXT_DIM
         textAlign = Paint.Align.CENTER
         textSize = dp(14f)
     }
@@ -100,7 +94,7 @@ class FaderView(context: Context) : View(context) {
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 touching = false
                 invalidate()
-                if (gliding) releasePending = true else listener?.onFaderReleased(this, value)
+                if (gliding) releasePending = true else listener?.onControlReleased(this, value)
             }
         }
         return true
@@ -133,7 +127,7 @@ class FaderView(context: Context) : View(context) {
                 gliding = false
                 if (releasePending) {
                     releasePending = false
-                    listener?.onFaderReleased(this@FaderView, value)
+                    listener?.onControlReleased(this@FaderView, value)
                 }
             } else {
                 postOnAnimation(this)
@@ -147,7 +141,7 @@ class FaderView(context: Context) : View(context) {
         invalidate()
         if (newValue != value) {
             value = newValue
-            listener?.onFaderMoved(this, value)
+            listener?.onControlChanged(this, value)
         }
     }
 

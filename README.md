@@ -1,12 +1,16 @@
 # Faderling
 
-An Android app that turns a tablet into a bank of 10 faders sending MIDI Control Change (CC) messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
+An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs and 8 buttons – sending MIDI Control Change (CC) messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
 
 ## Features
 
-- 10 vertical faders, landscape, 7-bit CC (0–127), send-only
-- Faders glide to the touched position instead of jumping
-- Per-fader Assignment (name, CC number, MIDI channel), edited on the settings screen (gear icon); defaults CC 20–29 on channel 1
+- Two Pages, switched with the tabs in the top bar:
+  - **Faders**: 10 vertical faders that glide to the touched position instead of jumping
+  - **Knobs & Buttons**: 8 knobs (drag up/down, relative, no jumps) and 8 buttons
+- Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off
+- 7-bit CC (0–127), send-only, landscape
+- Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
+- Default CCs: faders 20–29, knobs 102–109, buttons 110–117, all on channel 1
 - Advertises itself as **Faderling** via Bonjour; the receiver starts the Session
 - Session status shown on the main screen
 - Runs on Android 5.1 (API 22) and newer
@@ -48,7 +52,7 @@ Python 3, standard library only:
 
 ## Documentation
 
-- [GLOSSARY.md](GLOSSARY.md) – domain language (Fader, Assignment, Session)
+- [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Knob, Button, Page, Assignment, Session)
 - [docs/adr](docs/adr) – architecture decisions
 
 ## License
