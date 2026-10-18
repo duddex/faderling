@@ -33,6 +33,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 - Default CCs: faders 20–29, knobs 102–109, buttons 110–117, all on channel 1
 - Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
 - Session status shown on the main screen
+- Keeps the screen on while a Page is shown (not on the settings screen, where the normal screen timeout applies); plug the tablet in for longer sessions
 - Runs on Android 5.1 (API 22) and newer
 
 ## Build and install
@@ -62,7 +63,7 @@ Every push and pull request is built by [GitHub Actions](https://github.com/dudd
 
 On macOS, use *Audio MIDI Setup → MIDI Network Setup* instead of rtpMIDI.
 
-When the app is closed or restarted the Session ends; click **Connect** in rtpMIDI again.
+The Session only runs while Faderling is visible. It ends when the app is closed or restarted, when you switch to another app, or when the screen turns off (power button, or the screen timeout while you are on the settings screen); Faderling does no network activity in the background. Click **Connect** in rtpMIDI again afterwards.
 
 ## Known issues
 
