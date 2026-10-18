@@ -9,7 +9,9 @@ import android.text.TextUtils
 import android.text.TextPaint
 import android.view.MotionEvent
 import android.view.View
+import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sign
 
 class FaderView(context: Context) : View(context) {
 
@@ -50,6 +52,13 @@ class FaderView(context: Context) : View(context) {
     private val rect = RectF()
     private var touching = false
 
+    /** Exact fader position (0–127); [value] is its rounded MIDI value. */
+    private var position = 0f
+    private var target = 0f
+    private var gliding = false
+    private var releasePending = false
+    private var lastFrameNanos = 0L
+
     private fun updateTrackRect() {
         val trackWidth = (width * 0.55f).coerceAtMost(dp(64f))
         val cx = width / 2f
@@ -63,7 +72,7 @@ class FaderView(context: Context) : View(context) {
 
         canvas.drawRoundRect(trackRect, radius, radius, trackPaint)
 
-        val thumbY = trackRect.bottom - trackRect.height() * value / 127f
+        val thumbY = trackRect.bottom - trackRect.height() * position / 127f
         rect.set(trackRect.left, thumbY, trackRect.right, trackRect.bottom)
         canvas.drawRoundRect(rect, radius, radius, if (touching) fillActivePaint else fillPaint)
 
@@ -81,27 +90,74 @@ class FaderView(context: Context) : View(context) {
             MotionEvent.ACTION_DOWN -> {
                 parent?.requestDisallowInterceptTouchEvent(true)
                 touching = true
-                setFromY(event.y)
+                releasePending = false
+                glideTo(valueAtY(event.y))
                 invalidate()
             }
-            MotionEvent.ACTION_MOVE -> setFromY(event.y)
+            MotionEvent.ACTION_MOVE -> {
+                if (gliding) target = valueAtY(event.y) else setValue(valueAtY(event.y))
+            }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 touching = false
                 invalidate()
-                listener?.onFaderReleased(this, value)
+                if (gliding) releasePending = true else listener?.onFaderReleased(this, value)
             }
         }
         return true
     }
 
-    private fun setFromY(y: Float) {
+    private fun valueAtY(y: Float): Float {
         updateTrackRect()
-        val fraction = ((trackRect.bottom - y) / trackRect.height()).coerceIn(0f, 1f)
-        val newValue = (fraction * 127).roundToInt()
+        return ((trackRect.bottom - y) / trackRect.height()).coerceIn(0f, 1f) * 127f
+    }
+
+    private fun glideTo(newTarget: Float) {
+        target = newTarget
+        if (!gliding && newTarget.roundToInt() != value) {
+            gliding = true
+            lastFrameNanos = System.nanoTime()
+            postOnAnimation(glideStep)
+        }
+    }
+
+    private val glideStep = object : Runnable {
+        override fun run() {
+            val now = System.nanoTime()
+            val maxStep = 127f * (now - lastFrameNanos) / (GLIDE_FULL_TRAVEL_MS * 1_000_000f)
+            lastFrameNanos = now
+            val delta = target - position
+            val arrived = abs(delta) <= maxStep
+            position = if (arrived) target else position + maxStep * sign(delta)
+            setValue(position)
+            if (arrived) {
+                gliding = false
+                if (releasePending) {
+                    releasePending = false
+                    listener?.onFaderReleased(this@FaderView, value)
+                }
+            } else {
+                postOnAnimation(this)
+            }
+        }
+    }
+
+    private fun setValue(newPosition: Float) {
+        position = newPosition
+        val newValue = newPosition.roundToInt()
+        invalidate()
         if (newValue != value) {
             value = newValue
-            invalidate()
             listener?.onFaderMoved(this, value)
         }
+    }
+
+    override fun onDetachedFromWindow() {
+        removeCallbacks(glideStep)
+        gliding = false
+        super.onDetachedFromWindow()
+    }
+
+    private companion object {
+        const val GLIDE_FULL_TRAVEL_MS = 250f
     }
 }
