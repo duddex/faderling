@@ -6,9 +6,10 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 
 - Two Pages, switched with the tabs in the top bar:
   - **Faders**: 10 vertical faders that glide to the touched position instead of jumping
-  - **Knobs & Buttons**: 8 knobs (drag up/down, relative, no jumps) and 8 buttons
+  - **Knobs & Buttons**: two rows of 4 knobs (drag up/down, relative, no jumps) above a row of 8 square buttons
 - Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off
 - 7-bit CC (0–127), send-only, landscape
+- Every Control re-sends its final value shortly after release, to make up for lost Wi-Fi packets
 - Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
 - Default CCs: faders 20–29, knobs 102–109, buttons 110–117, all on channel 1
 - Advertises itself as **Faderling** via Bonjour; the receiver starts the Session
