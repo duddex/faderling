@@ -87,10 +87,19 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
         handler = null
     }
 
-    fun sendControlChange(channel: Int, cc: Int, value: Int) {
+    fun sendControlChange(channel: Int, cc: Int, value: Int) =
+        sendPacket { seq, ts -> AppleMidi.controlChangePacket(seq, ts, ssrc, channel, cc, value) }
+
+    fun sendNoteOn(channel: Int, note: Int, velocity: Int) =
+        sendPacket { seq, ts -> AppleMidi.noteOnPacket(seq, ts, ssrc, channel, note, velocity) }
+
+    fun sendNoteOff(channel: Int, note: Int) =
+        sendPacket { seq, ts -> AppleMidi.noteOffPacket(seq, ts, ssrc, channel, note) }
+
+    private fun sendPacket(build: (sequence: Int, timestamp: Int) -> ByteArray) {
         handler?.post {
             if (peers.isEmpty()) return@post
-            val packet = AppleMidi.controlChangePacket(sequence++ and 0xFFFF, now().toInt(), ssrc, channel, cc, value)
+            val packet = build(sequence++ and 0xFFFF, now().toInt())
             peers.values.forEach { p -> p.data?.let { send(dataSocket, packet, it) } }
         }
     }

@@ -1,5 +1,5 @@
 """Acts as an RTP-MIDI initiator (like rtpMIDI on a PC): invites Faderling, syncs the clock once
-and prints the CC messages it receives.
+and prints the CC and note messages it receives.
 
 Usage: python tools/rtpmidi_probe.py <tablet-ip> [port=5004] [seconds=8]
 """
@@ -43,8 +43,17 @@ while time.time() < end:
         continue
     if pkt[0] & 0xC0 == 0x80 and len(pkt) >= 16:
         seq, ts = struct.unpack(">HI", pkt[2:8])
-        status, cc, val = pkt[13], pkt[14], pkt[15]
-        print(f"RTP seq={seq} hdr=0x{pkt[12]:02x} ch={(status & 0x0F) + 1} cc={cc} value={val}")
+        status, data1, data2 = pkt[13], pkt[14], pkt[15]
+        channel = (status & 0x0F) + 1
+        kind = status & 0xF0
+        if kind == 0xB0:
+            print(f"RTP seq={seq} hdr=0x{pkt[12]:02x} ch={channel} cc={data1} value={data2}")
+        elif kind == 0x90:
+            print(f"RTP seq={seq} hdr=0x{pkt[12]:02x} ch={channel} note_on={data1} velocity={data2}")
+        elif kind == 0x80:
+            print(f"RTP seq={seq} hdr=0x{pkt[12]:02x} ch={channel} note_off={data1}")
+        else:
+            print(f"RTP seq={seq} hdr=0x{pkt[12]:02x} status=0x{status:02x} data={data1},{data2}")
 
 ctrl.sendto(struct.pack(">HHIII", 0xFFFF, 0x4259, 2, token, ssrc), (host, port))
 print("sent BY")

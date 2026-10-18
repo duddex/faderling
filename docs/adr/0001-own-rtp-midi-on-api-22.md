@@ -5,4 +5,4 @@ The target tablet (Fire 7, 2017) runs Android 5.1 (API 22), which has no Android
 ## Consequences
 
 - Raising minSdk to 23+ later would allow AndroidX/Compose, but the RTP-MIDI implementation would still be needed: Android's MIDI API has no network transport.
-- No RTP-MIDI recovery journal is sent; instead each Control's final value is re-sent shortly after release to mitigate lost UDP packets.
+- No RTP-MIDI recovery journal is sent; instead each Control's final value is re-sent shortly after release, and each Note Off is sent twice, to mitigate lost UDP packets.

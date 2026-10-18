@@ -8,21 +8,21 @@ import android.os.Looper
 import android.os.SystemClock
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 
-class MainActivity : Activity(), ControlListener {
+class MainActivity : Activity(), ControlListener, KeyboardView.Listener {
 
     private class ControlRef(val kind: ControlKind, val index: Int)
 
     private lateinit var store: AssignmentStore
     private lateinit var endpoint: RtpMidiEndpoint
     private lateinit var sessionStatus: TextView
-    private lateinit var tabFaders: TextView
-    private lateinit var tabKnobsButtons: TextView
-    private lateinit var fadersPage: View
-    private lateinit var knobsButtonsPage: View
+    private lateinit var tabs: List<TextView>
+    private lateinit var pages: List<View>
+    private var currentPage = 0
     private val handler = Handler(Looper.getMainLooper())
 
     private val faders = mutableListOf<FaderView>()
@@ -30,6 +30,19 @@ class MainActivity : Activity(), ControlListener {
     private val buttons = mutableListOf<ButtonView>()
     private val refs = HashMap<View, ControlRef>()
     private var assignments: Map<ControlKind, List<Assignment>> = emptyMap()
+
+    private lateinit var keyboard: KeyboardView
+    private lateinit var keyboardRange: TextView
+    private lateinit var octaveDown: TextView
+    private lateinit var octaveUp: TextView
+    private var keyboardSettings = KeyboardSettings()
+    private var lowestNote = Keyboard.DEFAULT_LOWEST_NOTE
+
+    /** Key index → note and channel it was started with, so its Note Off matches even after an octave shift. */
+    private val soundingNotes = HashMap<Int, Pair<Int, Int>>()
+
+    /** Note → pending repeat of its Note Off. */
+    private val pendingNoteOffs = HashMap<Int, Runnable>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,14 +57,21 @@ class MainActivity : Activity(), ControlListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        fadersPage = findViewById(R.id.faders)
-        knobsButtonsPage = findViewById(R.id.knobsButtons)
-        tabFaders = findViewById<TextView>(R.id.tabFaders).apply { setOnClickListener { showPage(0) } }
-        tabKnobsButtons = findViewById<TextView>(R.id.tabKnobsButtons).apply { setOnClickListener { showPage(1) } }
+        pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage))
+        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard).mapIndexed { page, id ->
+            findViewById<TextView>(id).apply { setOnClickListener { showPage(page) } }
+        }
 
         addControls(listOf(findViewById(R.id.faders)), ControlKind.FADER, faders) { FaderView(this).apply { listener = this@MainActivity } }
         addControls(listOf(findViewById(R.id.knobsRow1), findViewById(R.id.knobsRow2)), ControlKind.KNOB, knobs) { KnobView(this).apply { listener = this@MainActivity } }
         addControls(listOf(findViewById(R.id.buttons)), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
+
+        keyboard = KeyboardView(this).apply { listener = this@MainActivity }
+        findViewById<FrameLayout>(R.id.keyboardContainer).addView(keyboard)
+        keyboardRange = findViewById(R.id.keyboardRange)
+        octaveDown = findViewById<TextView>(R.id.octaveDown).apply { setOnClickListener { shiftOctave(-1) } }
+        octaveUp = findViewById<TextView>(R.id.octaveUp).apply { setOnClickListener { shiftOctave(1) } }
+        showKeyboardRange()
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
         showSession(null)
@@ -74,15 +94,51 @@ class MainActivity : Activity(), ControlListener {
     }
 
     private fun showPage(page: Int) {
-        fadersPage.visibility = if (page == 0) View.VISIBLE else View.GONE
-        knobsButtonsPage.visibility = if (page == 1) View.VISIBLE else View.GONE
-        tabFaders.isSelected = page == 0
-        tabKnobsButtons.isSelected = page == 1
+        if (page != currentPage) keyboard.releaseAll()
+        currentPage = page
+        pages.forEachIndexed { i, v -> v.visibility = if (i == page) View.VISIBLE else View.GONE }
+        tabs.forEachIndexed { i, t -> t.isSelected = i == page }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(STATE_PAGE, if (knobsButtonsPage.visibility == View.VISIBLE) 1 else 0)
+        outState.putInt(STATE_PAGE, currentPage)
+    }
+
+    private fun shiftOctave(octaves: Int) {
+        lowestNote = Keyboard.shift(lowestNote, octaves)
+        showKeyboardRange()
+    }
+
+    private fun showKeyboardRange() {
+        keyboardRange.text = getString(
+            R.string.keyboard_range,
+            Keyboard.noteName(lowestNote),
+            Keyboard.noteName(lowestNote + Keyboard.KEY_COUNT - 1),
+        )
+        octaveDown.isEnabled = lowestNote > Keyboard.MIN_LOWEST_NOTE
+        octaveUp.isEnabled = lowestNote < Keyboard.MAX_LOWEST_NOTE
+        octaveDown.alpha = if (octaveDown.isEnabled) 1f else 0.4f
+        octaveUp.alpha = if (octaveUp.isEnabled) 1f else 0.4f
+    }
+
+    override fun onKeyPressed(index: Int) {
+        val note = lowestNote + index
+        val channel = keyboardSettings.channel
+        pendingNoteOffs.remove(note)?.let(handler::removeCallbacks)
+        soundingNotes[index] = note to channel
+        endpoint.sendNoteOn(channel, note, keyboardSettings.velocity)
+    }
+
+    override fun onKeyReleased(index: Int) {
+        val (note, channel) = soundingNotes.remove(index) ?: return
+        endpoint.sendNoteOff(channel, note)
+        val repeat = Runnable {
+            pendingNoteOffs.remove(note)
+            endpoint.sendNoteOff(channel, note)
+        }
+        pendingNoteOffs[note] = repeat
+        handler.postDelayed(repeat, RESEND_DELAY_MS)
     }
 
     override fun onResume() {
@@ -102,6 +158,12 @@ class MainActivity : Activity(), ControlListener {
             v.name = a.name
             v.mode = a.mode
         }
+        keyboardSettings = store.loadKeyboard()
+    }
+
+    override fun onPause() {
+        keyboard.releaseAll()
+        super.onPause()
     }
 
     override fun onStart() {

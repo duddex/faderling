@@ -104,6 +104,15 @@ class AppleMidiTest {
     }
 
     @Test
+    fun `note on and note off packets`() {
+        val on = AppleMidi.noteOnPacket(sequence = 1, timestamp = 2, ssrc = 3, channel = 1, note = 60, velocity = 100)
+        assertArrayEquals(byteArrayOf(0x03, 0x90.toByte(), 60, 100), on.copyOfRange(12, 16))
+
+        val off = AppleMidi.noteOffPacket(sequence = 1, timestamp = 2, ssrc = 3, channel = 10, note = 72)
+        assertArrayEquals(byteArrayOf(0x03, 0x89.toByte(), 72, 0), off.copyOfRange(12, 16))
+    }
+
+    @Test
     fun `control change keeps channel and data bytes in MIDI range`() {
         val packet = AppleMidi.controlChangePacket(sequence = 0, timestamp = 0, ssrc = 0, channel = 16, cc = 200, value = 255)
         assertEquals(0xBF.toByte(), packet[13])

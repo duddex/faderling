@@ -16,4 +16,13 @@
         <item name="android:textColor">@color/page_tab</item>
         <item name="android:background">?android:attr/selectableItemBackground</item>
     </style>
+
+    <style name="OctaveButton">
+        <item name="android:layout_width">96dp</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/page_tab</item>
+        <item name="android:background">@drawable/octave_button</item>
+    </style>
 </resources>

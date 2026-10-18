@@ -75,6 +75,16 @@ object AppleMidi {
 
     /** RTP-MIDI packet carrying one Control Change, without recovery journal. [channel] is 1–16. */
     fun controlChangePacket(sequence: Int, timestamp: Int, ssrc: Int, channel: Int, cc: Int, value: Int): ByteArray =
+        midiPacket(sequence, timestamp, ssrc, 0xB0, channel, cc, value)
+
+    fun noteOnPacket(sequence: Int, timestamp: Int, ssrc: Int, channel: Int, note: Int, velocity: Int): ByteArray =
+        midiPacket(sequence, timestamp, ssrc, 0x90, channel, note, velocity)
+
+    fun noteOffPacket(sequence: Int, timestamp: Int, ssrc: Int, channel: Int, note: Int): ByteArray =
+        midiPacket(sequence, timestamp, ssrc, 0x80, channel, note, 0)
+
+    /** RTP-MIDI packet carrying one three-byte channel message, without recovery journal. */
+    private fun midiPacket(sequence: Int, timestamp: Int, ssrc: Int, status: Int, channel: Int, data1: Int, data2: Int): ByteArray =
         ByteBuffer.allocate(16)
             .put(0x80.toByte())
             .put(0x61)
@@ -82,8 +92,8 @@ object AppleMidi {
             .putInt(timestamp)
             .putInt(ssrc)
             .put(0x03)
-            .put((0xB0 or ((channel - 1) and 0x0F)).toByte())
-            .put((cc and 0x7F).toByte())
-            .put((value and 0x7F).toByte())
+            .put((status or ((channel - 1) and 0x0F)).toByte())
+            .put((data1 and 0x7F).toByte())
+            .put((data2 and 0x7F).toByte())
             .array()
 }

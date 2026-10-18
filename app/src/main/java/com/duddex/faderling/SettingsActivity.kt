@@ -48,6 +48,7 @@ class SettingsActivity : Activity() {
         section(list, ControlKind.FADER, R.string.section_faders, R.string.fader_number)
         section(list, ControlKind.KNOB, R.string.section_knobs, R.string.knob_number)
         section(list, ControlKind.BUTTON, R.string.section_buttons, R.string.button_number)
+        keyboardSection(list)
         root.addView(ScrollView(this).apply { addView(list) }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
 
         setContentView(root)
@@ -70,6 +71,41 @@ class SettingsActivity : Activity() {
         list.addView(text(getString(titleRes), Palette.ACCENT, 16f).apply { setPadding(0, dp(16), 0, dp(2)) })
         list.addView(columnLabels(kind == ControlKind.BUTTON))
         store.loadAll(kind).forEachIndexed { i, a -> list.addView(row(kind, i, a, getString(labelRes, i + 1))) }
+    }
+
+    private fun keyboardSection(list: LinearLayout) {
+        val settings = store.loadKeyboard()
+        list.addView(text(getString(R.string.section_keyboard), Palette.ACCENT, 16f).apply { setPadding(0, dp(16), 0, dp(2)) })
+        list.addView(LinearLayout(this).apply {
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(0, 0, 1f))
+            addView(text(getString(R.string.label_velocity), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(text(getString(R.string.label_channel), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
+        })
+
+        val velocity = edit(settings.velocity.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+        val channel = edit(settings.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val v = velocity.text.toString().toIntOrNull()?.takeIf { it in KeyboardSettings.VELOCITY_RANGE }
+                val c = channel.text.toString().toIntOrNull()?.takeIf { it in Assignment.CHANNEL_RANGE }
+                velocity.error = if (v == null) getString(R.string.error_velocity) else null
+                channel.error = if (c == null) getString(R.string.error_channel) else null
+                if (v != null && c != null) store.saveKeyboard(KeyboardSettings(channel = c, velocity = v))
+            }
+        }
+        velocity.addTextChangedListener(watcher)
+        channel.addTextChangedListener(watcher)
+
+        list.addView(LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(text(getString(R.string.page_keyboard), Palette.TEXT, 16f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(velocity, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
+        })
     }
 
     private fun columnLabels(withMode: Boolean): View = LinearLayout(this).apply {

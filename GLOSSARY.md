@@ -1,6 +1,6 @@
 # Faderling
 
-A tablet app that turns the screen into pages of controls that send MIDI Control Change messages over the network.
+A tablet app that turns the screen into pages of controls and a keyboard that send MIDI messages over the network.
 
 ## Language
 
@@ -37,11 +37,21 @@ _Avoid_: Mapping, binding, config
 ### Layout
 
 **Page**:
-One screen of Controls; the app has a Faders Page and a Knobs & Buttons Page.
+One screen of the app; there is a Faders Page, a Knobs & Buttons Page and a Keyboard Page.
 _Avoid_: Tab, screen, view
+
+### Keyboard
+
+**Keyboard**:
+A piano-style set of 25 Keys spanning two octaves that sends MIDI notes; it is not a Control.
+_Avoid_: Piano, keys
+
+**Key**:
+One white or black key of the Keyboard; pressing it sends Note On, releasing it sends Note Off.
+_Avoid_: Note, pad
 
 ### Connection
 
 **Session**:
-A live RTP-MIDI connection between the tablet and a receiver on the network, through which Control changes are sent.
+A live RTP-MIDI connection between the tablet and a receiver on the network, through which MIDI messages are sent.
 _Avoid_: Connection, link, pairing

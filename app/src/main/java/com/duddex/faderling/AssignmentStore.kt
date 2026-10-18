@@ -28,4 +28,19 @@ class AssignmentStore(context: Context) {
         if (kind == ControlKind.BUTTON) editor.putString("${p}mode_$index", assignment.mode.name)
         editor.apply()
     }
+
+    fun loadKeyboard(): KeyboardSettings {
+        val default = KeyboardSettings()
+        return KeyboardSettings(
+            channel = prefs.getInt("keyboard_channel", default.channel),
+            velocity = prefs.getInt("keyboard_velocity", default.velocity),
+        )
+    }
+
+    fun saveKeyboard(settings: KeyboardSettings) {
+        prefs.edit()
+            .putInt("keyboard_channel", settings.channel)
+            .putInt("keyboard_velocity", settings.velocity)
+            .apply()
+    }
 }
