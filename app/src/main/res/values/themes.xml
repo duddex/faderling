@@ -8,13 +8,14 @@
 
     <style name="PageTab">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:layout_marginEnd">4dp</item>
         <item name="android:gravity">center</item>
         <item name="android:paddingStart">12dp</item>
         <item name="android:paddingEnd">12dp</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/page_tab</item>
-        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/page_tab_text</item>
+        <item name="android:background">@drawable/page_tab_button</item>
     </style>
 
     <style name="OctaveButton">
@@ -22,7 +23,7 @@
         <item name="android:layout_height">36dp</item>
         <item name="android:gravity">center</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">@color/page_tab</item>
+        <item name="android:textColor">@color/page_tab_text</item>
         <item name="android:background">@drawable/octave_button</item>
     </style>
 </resources>
