@@ -64,17 +64,23 @@
             android:visibility="gone">
 
             <LinearLayout
-                android:id="@+id/knobs"
+                android:id="@+id/knobsRow1"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1.2"
+                android:layout_weight="1"
+                android:orientation="horizontal" />
+
+            <LinearLayout
+                android:id="@+id/knobsRow2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:orientation="horizontal" />
 
             <LinearLayout
                 android:id="@+id/buttons"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal" />
         </LinearLayout>
     </FrameLayout>

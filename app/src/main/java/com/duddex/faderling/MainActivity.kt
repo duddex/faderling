@@ -49,18 +49,25 @@ class MainActivity : Activity(), ControlListener {
         tabFaders = findViewById<TextView>(R.id.tabFaders).apply { setOnClickListener { showPage(0) } }
         tabKnobsButtons = findViewById<TextView>(R.id.tabKnobsButtons).apply { setOnClickListener { showPage(1) } }
 
-        addControls(findViewById(R.id.faders), ControlKind.FADER, faders) { FaderView(this).apply { listener = this@MainActivity } }
-        addControls(findViewById(R.id.knobs), ControlKind.KNOB, knobs) { KnobView(this).apply { listener = this@MainActivity } }
-        addControls(findViewById(R.id.buttons), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
+        addControls(listOf(findViewById(R.id.faders)), ControlKind.FADER, faders) { FaderView(this).apply { listener = this@MainActivity } }
+        addControls(listOf(findViewById(R.id.knobsRow1), findViewById(R.id.knobsRow2)), ControlKind.KNOB, knobs) { KnobView(this).apply { listener = this@MainActivity } }
+        addControls(listOf(findViewById(R.id.buttons)), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
         showSession(null)
     }
 
-    private fun <T : View> addControls(container: LinearLayout, kind: ControlKind, list: MutableList<T>, create: () -> T) {
+    /** Distributes the Controls of [kind] evenly over [rows], filling them left to right, top to bottom. */
+    private fun <T : View> addControls(rows: List<LinearLayout>, kind: ControlKind, list: MutableList<T>, create: () -> T) {
+        val perRow = (kind.count + rows.size - 1) / rows.size
         repeat(kind.count) { i ->
             val view = create()
-            container.addView(view, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            val height = if (rows[i / perRow].layoutParams.height == LinearLayout.LayoutParams.WRAP_CONTENT) {
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            } else {
+                LinearLayout.LayoutParams.MATCH_PARENT
+            }
+            rows[i / perRow].addView(view, LinearLayout.LayoutParams(0, height, 1f))
             list += view
             refs[view] = ControlRef(kind, i)
         }

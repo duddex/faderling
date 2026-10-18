@@ -52,9 +52,11 @@ class KnobView(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         val labelHeight = dp(24f)
-        val stroke = dp(8f)
-        val size = min(width.toFloat(), height - labelHeight) - stroke - dp(8f)
+        val available = min(width.toFloat(), height - labelHeight) - dp(8f)
+        val stroke = (available * 0.07f).coerceAtLeast(dp(8f))
+        val size = available - stroke
         if (size <= 0) return
+        valuePaint.textSize = (size * 0.2f).coerceAtLeast(dp(18f))
         val cx = width / 2f
         val cy = (height - labelHeight) / 2f
         oval.set(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2)

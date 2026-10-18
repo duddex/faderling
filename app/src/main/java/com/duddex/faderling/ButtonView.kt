@@ -35,6 +35,11 @@ class ButtonView(context: Context) : View(context) {
     }
     private val rect = RectF()
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        setMeasuredDimension(width, resolveSize(width, heightMeasureSpec))
+    }
+
     override fun onDraw(canvas: Canvas) {
         val inset = dp(6f)
         rect.set(inset, inset, width - inset, height - inset)
