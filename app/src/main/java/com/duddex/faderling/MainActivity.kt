@@ -64,7 +64,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         endpoint = (application as FaderlingApp).endpoint
         sessionStatus = findViewById(R.id.sessionStatus)
         findViewById<ImageButton>(R.id.settingsButton).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            startActivity(Intent(this, SettingsActivity::class.java).putExtra(SettingsActivity.EXTRA_PAGE, currentPage))
         }
 
         pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage))

@@ -32,46 +32,60 @@ class SettingsActivity : Activity() {
     }
 
     private lateinit var store: AssignmentStore
+    private lateinit var list: LinearLayout
+    private lateinit var scroll: ScrollView
+    private lateinit var tabs: List<TextView>
+    private var page = 0
     private val rows = mutableListOf<Row>()
+
+    /** Every Control's Assignment, including those of other Pages, for duplicate warnings. */
+    private val assignments = HashMap<Pair<ControlKind, Int>, Assignment>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         store = AssignmentStore(this)
+        ControlKind.entries.forEach { kind -> store.loadAll(kind).forEachIndexed { i, a -> assignments[kind to i] = a } }
 
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(8), dp(4), dp(8), dp(4))
+        setContentView(R.layout.activity_settings)
+        findViewById<View>(R.id.root).padForSystemBars()
+        findViewById<ImageButton>(R.id.back).setOnClickListener { finish() }
+        list = findViewById(R.id.list)
+        scroll = findViewById(R.id.scroll)
+        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads).mapIndexed { p, id ->
+            findViewById<TextView>(id).apply { setOnClickListener { showPage(p) } }
         }
-        root.addView(header())
+        showPage(savedInstanceState?.getInt(STATE_PAGE) ?: intent.getIntExtra(EXTRA_PAGE, 0))
+    }
 
-        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        section(list, ControlKind.FADER, R.string.section_faders, R.string.fader_number)
-        section(list, ControlKind.KNOB, R.string.section_knobs, R.string.knob_number)
-        section(list, ControlKind.BUTTON, R.string.section_buttons, R.string.button_number)
-        keyboardSection(list)
-        padsSection(list)
-        root.addView(ScrollView(this).apply { addView(list) }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_PAGE, page)
+    }
 
-        setContentView(root)
-        root.padForSystemBars()
+    /** Shows the settings belonging to one Page of the main screen. */
+    private fun showPage(p: Int) {
+        page = p
+        tabs.forEachIndexed { i, t -> t.isSelected = i == p }
+        currentFocus?.clearFocus()
+        list.removeAllViews()
+        rows.clear()
+        when (p) {
+            0 -> section(list, ControlKind.FADER, R.string.section_faders, R.string.fader_number)
+            1 -> {
+                section(list, ControlKind.KNOB, R.string.section_knobs, R.string.knob_number)
+                section(list, ControlKind.BUTTON, R.string.section_buttons, R.string.button_number)
+            }
+            2 -> keyboardSection(list)
+            3 -> padsSection(list)
+        }
+        scroll.scrollTo(0, 0)
         updateWarnings()
     }
 
-    private fun header(): View = LinearLayout(this).apply {
-        gravity = Gravity.CENTER_VERTICAL
-        addView(ImageButton(this@SettingsActivity).apply {
-            setImageResource(R.drawable.ic_back)
-            setBackgroundResource(resolveAttr(android.R.attr.selectableItemBackgroundBorderless))
-            contentDescription = getString(R.string.back)
-            setOnClickListener { finish() }
-        }, LinearLayout.LayoutParams(dp(40), dp(40)))
-        addView(text(getString(R.string.settings), Palette.TEXT, 20f).apply { setPadding(dp(8), 0, 0, 0) })
-    }
-
     private fun section(list: LinearLayout, kind: ControlKind, titleRes: Int, labelRes: Int) {
-        list.addView(text(getString(titleRes), Palette.ACCENT, 16f).apply { setPadding(0, dp(16), 0, dp(2)) })
+        list.addView(text(getString(titleRes), Palette.ACCENT, 16f).apply { setPadding(0, dp(12), 0, dp(2)) })
         list.addView(columnLabels(kind == ControlKind.BUTTON))
-        store.loadAll(kind).forEachIndexed { i, a -> list.addView(row(kind, i, a, getString(labelRes, i + 1))) }
+        (0 until kind.count).forEach { i -> list.addView(row(kind, i, assignments.getValue(kind to i), getString(labelRes, i + 1))) }
     }
 
     private fun keyboardSection(list: LinearLayout) {
@@ -247,6 +261,7 @@ class SettingsActivity : Activity() {
             val mode = r.mode?.tag as? ButtonMode ?: ButtonMode.MOMENTARY
             val a = Assignment(r.name.text.toString(), cc, channel, mode)
             r.current = a
+            assignments[r.kind to r.index] = a
             store.save(r.kind, r.index, a)
             updateWarnings()
         }
@@ -255,23 +270,26 @@ class SettingsActivity : Activity() {
     private fun updateWarnings() {
         rows.forEach { r ->
             val a = r.current ?: return@forEach
-            val others = rows.filter { o -> o !== r && o.current?.cc == a.cc && o.current?.channel == a.channel }
+            val others = assignments.entries
+                .filter { (key, o) -> key != (r.kind to r.index) && o.cc == a.cc && o.channel == a.channel }
+                .map { it.key }
+                .sortedWith(compareBy({ it.first.ordinal }, { it.second }))
             if (others.isEmpty()) {
                 r.warning.visibility = View.GONE
             } else {
-                r.warning.text = getString(R.string.warning_duplicate, others.joinToString(", ") { label(it) })
+                r.warning.text = getString(R.string.warning_duplicate, others.joinToString(", ") { label(it.first, it.second) })
                 r.warning.visibility = View.VISIBLE
             }
         }
     }
 
-    private fun label(r: Row): String = getString(
-        when (r.kind) {
+    private fun label(kind: ControlKind, index: Int): String = getString(
+        when (kind) {
             ControlKind.FADER -> R.string.fader_number
             ControlKind.KNOB -> R.string.knob_number
             ControlKind.BUTTON -> R.string.button_number
         },
-        r.index + 1,
+        index + 1,
     )
 
     private fun edit(value: String, type: Int, maxLength: Int) = EditText(this).apply {
@@ -289,15 +307,11 @@ class SettingsActivity : Activity() {
         setTextSize(TypedValue.COMPLEX_UNIT_SP, sizeSp)
     }
 
-    private fun resolveAttr(attr: Int): Int {
-        val tv = TypedValue()
-        theme.resolveAttribute(attr, tv, true)
-        return tv.resourceId
-    }
-
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
-    private companion object {
-        const val MODE_WIDTH = 110
+    companion object {
+        const val EXTRA_PAGE = "page"
+        private const val STATE_PAGE = "page"
+        private const val MODE_WIDTH = 110
     }
 }

@@ -29,7 +29,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 - Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off. Latch Buttons have a small LED in the corner that lights while they are on
 - 7-bit CC (0–127), send-only, landscape
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
-- Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), plus Keyboard channel and velocity (default 100) and per-Pad name and note with a shared Pad channel and velocity, edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
+- Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), plus Keyboard channel and velocity (default 100) and per-Pad name and note with a shared Pad channel and velocity, edited in the settings (gear icon), which have one tab per Page and open on the Page you are on; duplicate CC/channel combinations are flagged, also across Pages
 - Default CCs: faders 20–29, knobs 102–109, buttons 110–117, all on channel 1
 - Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
 - Session status shown on the main screen
