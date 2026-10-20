@@ -9,8 +9,8 @@ import android.util.SparseIntArray
 import android.view.MotionEvent
 import android.view.View
 
-/** Piano-style Keyboard of [Keyboard.KEY_COUNT] Keys; every finger plays its own Key and sliding changes Keys. */
-class KeyboardView(context: Context) : View(context) {
+/** Piano-style Keyboard of [keyCount] Keys starting on a C; every finger plays its own Key and sliding changes Keys. */
+class KeyboardView @JvmOverloads constructor(context: Context, val keyCount: Int = Keyboard.KEY_COUNT) : View(context) {
 
     interface Listener {
         fun onKeyPressed(index: Int)
@@ -24,12 +24,12 @@ class KeyboardView(context: Context) : View(context) {
 
     /** Pointer id → Key index it is holding. */
     private val pointers = SparseIntArray()
-    private val pressCount = IntArray(Keyboard.KEY_COUNT)
+    private val pressCount = IntArray(keyCount)
 
     /** Pointers whose Keys were force-released; they are ignored until lifted so they don't re-trigger. */
     private val ignoredPointers = HashSet<Int>()
 
-    private val whiteCount = (0 until Keyboard.KEY_COUNT).count { !Keyboard.isBlack(it) }
+    private val whiteCount = (0 until keyCount).count { !Keyboard.isBlack(it) }
     private val whitePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(0xDD, 0xE1, 0xE8) }
     private val blackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.TRACK }
     private val blackBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.BACKGROUND }
@@ -42,13 +42,13 @@ class KeyboardView(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val gap = dp(2f)
         val radius = dp(4f)
-        for (i in 0 until Keyboard.KEY_COUNT) {
+        for (i in 0 until keyCount) {
             if (Keyboard.isBlack(i)) continue
             val x = whitePosition(i) * whiteWidth
             rect.set(x + gap / 2, 0f, x + whiteWidth - gap / 2, height.toFloat())
             canvas.drawRoundRect(rect, radius, radius, if (pressCount[i] > 0) pressedPaint else whitePaint)
         }
-        for (i in 0 until Keyboard.KEY_COUNT) {
+        for (i in 0 until keyCount) {
             if (!Keyboard.isBlack(i)) continue
             blackRect(i, rect)
             canvas.drawRoundRect(rect.left - gap, rect.top, rect.right + gap, rect.bottom + gap, radius, radius, blackBorderPaint)
@@ -126,7 +126,7 @@ class KeyboardView(context: Context) : View(context) {
     private fun keyAt(x: Float, y: Float): Int? {
         if (x < 0 || x >= width || y < 0 || y >= height) return null
         if (y < blackHeight) {
-            for (i in 0 until Keyboard.KEY_COUNT) {
+            for (i in 0 until keyCount) {
                 if (Keyboard.isBlack(i)) {
                     blackRect(i, rect)
                     if (rect.contains(x, y)) return i

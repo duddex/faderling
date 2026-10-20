@@ -9,7 +9,6 @@ import android.text.TextUtils
 import android.util.SparseIntArray
 import android.view.MotionEvent
 import android.view.View
-import kotlin.math.min
 
 /**
  * MPC-style 4×4 grid of square Pads, centred in the view. Every touch on a Pad triggers it (also while
@@ -25,6 +24,10 @@ class PadGridView(context: Context) : View(context) {
     var listener: Listener? = null
 
     var names: List<String> = emptyList()
+        set(v) { field = v; invalidate() }
+
+    /** Let Pads become wider than tall to use the room on low, wide screens. */
+    var stretch: Boolean = false
         set(v) { field = v; invalidate() }
 
     private val density = resources.displayMetrics.density
@@ -43,16 +46,21 @@ class PadGridView(context: Context) : View(context) {
     }
     private val rect = RectF()
 
-    private val cell get() = min(width.toFloat() / Pads.COLUMNS, height.toFloat() / Pads.ROWS)
-    private val left get() = (width - cell * Pads.COLUMNS) / 2
-    private val top get() = (height - cell * Pads.ROWS) / 2
+    private val cellWidth get() = Pads.cellSize(width.toFloat(), height.toFloat(), stretch).first
+    private val cellHeight get() = Pads.cellSize(width.toFloat(), height.toFloat(), stretch).second
+    private val left get() = (width - cellWidth * Pads.COLUMNS) / 2
+    private val top get() = (height - cellHeight * Pads.ROWS) / 2
 
     override fun onDraw(canvas: Canvas) {
         val gap = dp(6f)
+        val cw = cellWidth
+        val ch = cellHeight
+        val l = left
+        val t = top
         for (row in 0 until Pads.ROWS) {
             for (column in 0 until Pads.COLUMNS) {
                 val index = Pads.indexAt(row, column)
-                rect.set(left + column * cell + gap / 2, top + row * cell + gap / 2, left + (column + 1) * cell - gap / 2, top + (row + 1) * cell - gap / 2)
+                rect.set(l + column * cw + gap / 2, t + row * ch + gap / 2, l + (column + 1) * cw - gap / 2, t + (row + 1) * ch - gap / 2)
                 val pressed = pressCount[index] > 0
                 canvas.drawRoundRect(rect, dp(10f), dp(10f), if (pressed) pressedPaint else padPaint)
                 namePaint.color = if (pressed) Palette.BACKGROUND else Palette.TEXT
@@ -118,8 +126,8 @@ class PadGridView(context: Context) : View(context) {
     }
 
     private fun padAt(x: Float, y: Float): Int? {
-        val column = ((x - left) / cell).toInt()
-        val row = ((y - top) / cell).toInt()
+        val column = ((x - left) / cellWidth).toInt()
+        val row = ((y - top) / cellHeight).toInt()
         if (x < left || y < top || column !in 0 until Pads.COLUMNS || row !in 0 until Pads.ROWS) return null
         return Pads.indexAt(row, column)
     }

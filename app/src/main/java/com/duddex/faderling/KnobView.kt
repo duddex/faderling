@@ -51,14 +51,19 @@ class KnobView(context: Context) : View(context) {
     private val oval = RectF()
 
     override fun onDraw(canvas: Canvas) {
-        val labelHeight = dp(24f)
-        val available = min(width.toFloat(), height - labelHeight) - dp(8f)
-        val stroke = (available * 0.07f).coerceAtLeast(dp(8f))
-        val size = available - stroke
+        val nameHeight = namePaint.descent() - namePaint.ascent()
+        val gap = dp(4f)
+        // The arc is open at the bottom, so the name can sit just below the arc's ends (at 0.707 × radius).
+        val byHeight = (height - dp(8f) - gap - nameHeight) / (0.5f + 0.354f + 0.075f)
+        val outer = min(width - dp(8f), byHeight)
+        val stroke = (outer * 0.075f).coerceAtLeast(dp(8f))
+        val size = outer - stroke
         if (size <= 0) return
         valuePaint.textSize = (size * 0.2f).coerceAtLeast(dp(18f))
+        val arcBottom = size / 2 * 0.707f + stroke / 2
+        val groupHeight = size / 2 + stroke / 2 + arcBottom + gap + nameHeight
         val cx = width / 2f
-        val cy = (height - labelHeight) / 2f
+        val cy = (height - groupHeight) / 2 + size / 2 + stroke / 2
         oval.set(cx - size / 2, cy - size / 2, cx + size / 2, cy + size / 2)
 
         trackPaint.strokeWidth = stroke
@@ -71,7 +76,7 @@ class KnobView(context: Context) : View(context) {
 
         canvas.drawText(value.toString(), cx, cy - (valuePaint.descent() + valuePaint.ascent()) / 2, valuePaint)
         val label = TextUtils.ellipsize(name, namePaint, width - dp(4f), TextUtils.TruncateAt.END).toString()
-        canvas.drawText(label, cx, height - dp(6f), namePaint)
+        canvas.drawText(label, cx, cy + arcBottom + gap - namePaint.ascent(), namePaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

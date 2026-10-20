@@ -35,6 +35,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 - Session status shown on the main screen
 - Keeps the screen on while a Page is shown (not on the settings screen, where the normal screen timeout applies); plug the tablet in for longer sessions
 - Runs on Android 5.1 (API 22) and newer
+- Works on phones too: on low screens (less than 450 dp high, e.g. a phone in landscape) the Keyboard shows one octave (C3–C4) with wider Keys and the Pads stretch into rectangles; tablets keep the regular layout
 
 ## Build and install
 

@@ -27,4 +27,27 @@ class PadsTest {
         assertEquals(10, PadSettings().channel)
         assertEquals(100, PadSettings().velocity)
     }
+
+    @Test
+    fun `Pads are square unless stretched`() {
+        assertEquals(100f to 100f, Pads.cellSize(width = 1000f, height = 400f, stretch = false))
+    }
+
+    @Test
+    fun `stretched Pads use the width up to 1_6 times their height`() {
+        assertEquals(160f to 100f, Pads.cellSize(width = 1000f, height = 400f, stretch = true))
+        assertEquals(125f to 100f, Pads.cellSize(width = 500f, height = 400f, stretch = true))
+    }
+
+    @Test
+    fun `stretch does nothing when the area is taller than wide`() {
+        assertEquals(50f to 50f, Pads.cellSize(width = 200f, height = 400f, stretch = true))
+    }
+
+    @Test
+    fun `compact layout only below 450 dp available height`() {
+        assertEquals(true, ScreenLayout.isCompact(411))
+        assertEquals(false, ScreenLayout.isCompact(527))
+        assertEquals(false, ScreenLayout.isCompact(711))
+    }
 }

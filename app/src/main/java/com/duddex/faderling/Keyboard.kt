@@ -8,8 +8,14 @@ data class KeyboardSettings(val channel: Int = 1, val velocity: Int = 100) {
 }
 
 object Keyboard {
+    /** Two octaves C to C, used when there is enough room. */
     const val KEY_COUNT = 25
+
+    /** One octave C to C, used in the compact layout. */
+    const val COMPACT_KEY_COUNT = 13
+
     const val DEFAULT_LOWEST_NOTE = 48
+    const val COMPACT_DEFAULT_LOWEST_NOTE = 60
     const val MIN_LOWEST_NOTE = 0
 
     /** Highest lowest note that keeps all 25 Keys within MIDI 0–127, on a C. */
@@ -23,5 +29,9 @@ object Keyboard {
     /** Note name in Ableton's convention, where note 60 (middle C) is "C3". */
     fun noteName(note: Int): String = NAMES[note % 12] + (note / 12 - 2)
 
-    fun shift(lowestNote: Int, octaves: Int): Int = (lowestNote + 12 * octaves).coerceIn(MIN_LOWEST_NOTE, MAX_LOWEST_NOTE)
+    /** Highest lowest note, on a C, that keeps [keyCount] Keys within MIDI 0–127. */
+    fun maxLowestNote(keyCount: Int): Int = (127 - (keyCount - 1)) / 12 * 12
+
+    fun shift(lowestNote: Int, octaves: Int, keyCount: Int = KEY_COUNT): Int =
+        (lowestNote + 12 * octaves).coerceIn(MIN_LOWEST_NOTE, maxLowestNote(keyCount))
 }

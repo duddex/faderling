@@ -38,4 +38,14 @@ class KeyboardTest {
         assertEquals(96, Keyboard.shift(96, 1))
         assertEquals(true, Keyboard.MAX_LOWEST_NOTE + Keyboard.KEY_COUNT - 1 <= 127)
     }
+
+    @Test
+    fun `one-octave compact keyboard starts at middle C and can go one octave higher`() {
+        assertEquals(13, Keyboard.COMPACT_KEY_COUNT)
+        assertEquals("C3", Keyboard.noteName(Keyboard.COMPACT_DEFAULT_LOWEST_NOTE))
+        assertEquals(96, Keyboard.maxLowestNote(Keyboard.KEY_COUNT))
+        assertEquals(108, Keyboard.maxLowestNote(Keyboard.COMPACT_KEY_COUNT))
+        assertEquals(108, Keyboard.shift(108, 1, Keyboard.COMPACT_KEY_COUNT))
+        assertEquals(true, 108 + Keyboard.COMPACT_KEY_COUNT - 1 <= 127)
+    }
 }

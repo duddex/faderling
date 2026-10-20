@@ -38,6 +38,9 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private var keyboardSettings = KeyboardSettings()
     private var lowestNote = Keyboard.DEFAULT_LOWEST_NOTE
 
+    /** Low screen (phone in landscape, split screen): one-octave Keyboard and stretched Pads. */
+    private val compact by lazy { ScreenLayout.isCompact(resources.configuration.screenHeightDp) }
+
     /** Key index → note and channel it was started with, so its Note Off matches even after an octave shift. */
     private val soundingNotes = HashMap<Int, Pair<Int, Int>>()
 
@@ -73,14 +76,18 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         addControls(listOf(findViewById(R.id.knobsRow1), findViewById(R.id.knobsRow2)), ControlKind.KNOB, knobs) { KnobView(this).apply { listener = this@MainActivity } }
         addControls(listOf(findViewById(R.id.buttons)), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
 
-        keyboard = KeyboardView(this).apply { listener = this@MainActivity }
+        keyboard = KeyboardView(this, if (compact) Keyboard.COMPACT_KEY_COUNT else Keyboard.KEY_COUNT).apply { listener = this@MainActivity }
+        lowestNote = if (compact) Keyboard.COMPACT_DEFAULT_LOWEST_NOTE else Keyboard.DEFAULT_LOWEST_NOTE
         findViewById<FrameLayout>(R.id.keyboardContainer).addView(keyboard)
         keyboardRange = findViewById(R.id.keyboardRange)
         octaveDown = findViewById<TextView>(R.id.octaveDown).apply { setOnClickListener { shiftOctave(-1) } }
         octaveUp = findViewById<TextView>(R.id.octaveUp).apply { setOnClickListener { shiftOctave(1) } }
         showKeyboardRange()
 
-        padGrid = PadGridView(this).apply { listener = this@MainActivity }
+        padGrid = PadGridView(this).apply {
+            listener = this@MainActivity
+            stretch = compact
+        }
         findViewById<FrameLayout>(R.id.padsPage).addView(padGrid)
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
@@ -119,7 +126,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     }
 
     private fun shiftOctave(octaves: Int) {
-        lowestNote = Keyboard.shift(lowestNote, octaves)
+        lowestNote = Keyboard.shift(lowestNote, octaves, keyboard.keyCount)
         showKeyboardRange()
     }
 
@@ -127,10 +134,10 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         keyboardRange.text = getString(
             R.string.keyboard_range,
             Keyboard.noteName(lowestNote),
-            Keyboard.noteName(lowestNote + Keyboard.KEY_COUNT - 1),
+            Keyboard.noteName(lowestNote + keyboard.keyCount - 1),
         )
         octaveDown.isEnabled = lowestNote > Keyboard.MIN_LOWEST_NOTE
-        octaveUp.isEnabled = lowestNote < Keyboard.MAX_LOWEST_NOTE
+        octaveUp.isEnabled = lowestNote < Keyboard.maxLowestNote(keyboard.keyCount)
         octaveDown.alpha = if (octaveDown.isEnabled) 1f else 0.4f
         octaveUp.alpha = if (octaveUp.isEnabled) 1f else 0.4f
     }
