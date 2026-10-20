@@ -53,7 +53,7 @@ _Avoid_: Note
 ### Pads
 
 **Pad**:
-One of 16 square drum pads in an MPC-style 4×4 grid; each touch sends Note On for its note, lifting the last finger sends Note Off. It is not a Control.
+One of 16 drum pads in an MPC-style 4×4 grid; each touch sends Note On for its note, lifting the last finger sends Note Off. It is not a Control.
 _Avoid_: Drum, trigger, button
 
 **Pad Assignment**:

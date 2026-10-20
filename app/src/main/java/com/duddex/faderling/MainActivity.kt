@@ -38,7 +38,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private var keyboardSettings = KeyboardSettings()
     private var lowestNote = Keyboard.DEFAULT_LOWEST_NOTE
 
-    /** Low screen (phone in landscape, split screen): one-octave Keyboard and stretched Pads. */
+    /** Low screen (phone in landscape, split screen): one-octave Keyboard. */
     private val compact by lazy { ScreenLayout.isCompact(resources.configuration.screenHeightDp) }
 
     /** Key index → note and channel it was started with, so its Note Off matches even after an octave shift. */
@@ -84,10 +84,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         octaveUp = findViewById<TextView>(R.id.octaveUp).apply { setOnClickListener { shiftOctave(1) } }
         showKeyboardRange()
 
-        padGrid = PadGridView(this).apply {
-            listener = this@MainActivity
-            stretch = compact
-        }
+        padGrid = PadGridView(this).apply { listener = this@MainActivity }
         findViewById<FrameLayout>(R.id.padsPage).addView(padGrid)
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)

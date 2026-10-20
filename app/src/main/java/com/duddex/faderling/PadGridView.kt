@@ -11,7 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 
 /**
- * MPC-style 4×4 grid of square Pads, centred in the view. Every touch on a Pad triggers it (also while
+ * MPC-style 4×4 grid of Pads (up to 1.6 times wider than tall), centred in the view. Every touch on a Pad triggers it (also while
  * another finger holds it); a Pad is released when its last finger lifts. Sliding onto other Pads does nothing.
  */
 class PadGridView(context: Context) : View(context) {
@@ -24,10 +24,6 @@ class PadGridView(context: Context) : View(context) {
     var listener: Listener? = null
 
     var names: List<String> = emptyList()
-        set(v) { field = v; invalidate() }
-
-    /** Let Pads become wider than tall to use the room on low, wide screens. */
-    var stretch: Boolean = false
         set(v) { field = v; invalidate() }
 
     private val density = resources.displayMetrics.density
@@ -46,8 +42,8 @@ class PadGridView(context: Context) : View(context) {
     }
     private val rect = RectF()
 
-    private val cellWidth get() = Pads.cellSize(width.toFloat(), height.toFloat(), stretch).first
-    private val cellHeight get() = Pads.cellSize(width.toFloat(), height.toFloat(), stretch).second
+    private val cellWidth get() = Pads.cellSize(width.toFloat(), height.toFloat()).first
+    private val cellHeight get() = Pads.cellSize(width.toFloat(), height.toFloat()).second
     private val left get() = (width - cellWidth * Pads.COLUMNS) / 2
     private val top get() = (height - cellHeight * Pads.ROWS) / 2
 

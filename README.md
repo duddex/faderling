@@ -25,7 +25,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
   - **Faders**: 10 vertical faders that glide to the touched position instead of jumping
   - **Knobs & Buttons**: two rows of 4 knobs (drag up/down, relative, no jumps) above a row of 8 square buttons
   - **Keyboard**: 25 keys (two octaves, C to C) sending Note On/Note Off; chords and sliding across keys (glissando); *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72)
-  - **Pads**: 4×4 MPC-style drum pads sending Note On/Note Off on channel 10, laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left); every touch retriggers (two-finger rolls), sliding onto other Pads does nothing
+  - **Pads**: 4×4 MPC-style drum pads (rectangular, up to 1.6 times wider than tall, to use the screen width) sending Note On/Note Off on channel 10, laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left); every touch retriggers (two-finger rolls), sliding onto other Pads does nothing
 - Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off
 - 7-bit CC (0–127), send-only, landscape
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
@@ -35,7 +35,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 - Session status shown on the main screen
 - Keeps the screen on while a Page is shown (not on the settings screen, where the normal screen timeout applies); plug the tablet in for longer sessions
 - Runs on Android 5.1 (API 22) and newer
-- Works on phones too: on low screens (less than 450 dp high, e.g. a phone in landscape) the Keyboard shows one octave (C3–C4) with wider Keys and the Pads stretch into rectangles; tablets keep the regular layout
+- Works on phones too: on low screens (less than 450 dp high, e.g. a phone in landscape) the Keyboard shows one octave (C3–C4) with wider Keys; tablets keep two octaves
 
 ## Build and install
 
