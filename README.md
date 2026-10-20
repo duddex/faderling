@@ -69,6 +69,20 @@ On macOS, use *Audio MIDI Setup → MIDI Network Setup* instead of rtpMIDI.
 
 The Session only runs while Faderling is visible. It ends when the app is closed or restarted, when you switch to another app, or when the screen turns off (power button, or the screen timeout while you are on the settings screen); Faderling does no network activity in the background. Click **Connect** in rtpMIDI again afterwards.
 
+## Demo patch for VCV Rack
+
+![VCV Rack demo patch](vcvrack/faderling_demo.png)
+
+**[Download faderling_demo.vcv](https://github.com/duddex/faderling/raw/main/vcvrack/faderling_demo.vcv)**
+
+This [VCV Rack](https://vcvrack.com/) 2 patch shows the **Faders**, **Buttons** and **LFOs** Pages in action, using Faderling's default CC values. It only uses modules that come with VCV Rack (Core and Fundamental):
+
+- **Faders** – a *MIDI-CC to CV* module receives CC 20–29 and drives 10 *VCA-1* modules, whose level meters follow the faders.
+- **Buttons** – a second *MIDI-CC to CV* module receives CC 110–117 and drives 8 *Push* modules, which light up while a button is on.
+- **LFOs** – a third *MIDI-CC to CV* module receives CC 102–109 and drives 8 more *VCA-1* modules, whose meters move with the running LFOs.
+
+After opening the patch, select your rtpMIDI session port as the MIDI device in each of the three *MIDI-CC to CV* modules.
+
 ## Known issues
 
 - **Lenovo tablets (ZUI): pressing three Controls, Keys or Pads at once takes a screenshot.** Lenovo's three-finger system gestures (swipe down = screenshot, swipe up, spread = split screen, …) are handled by the system before the app sees the touches, and apps cannot turn them off. Disable them on the tablet under *Settings → System → Gestures* (the exact menu depends on the ZUI version), or via ADB:
