@@ -34,14 +34,7 @@ class ButtonView(context: Context) : View(context) {
         textAlign = Paint.Align.CENTER
         textSize = dp(15f)
     }
-    private val modePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.CENTER
-        textSize = dp(10f)
-        letterSpacing = 0.08f
-    }
     private val ledPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val momentaryLabel = context.getString(R.string.mode_momentary).uppercase()
-    private val latchLabel = context.getString(R.string.mode_latch).uppercase()
     private val rect = RectF()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -55,19 +48,9 @@ class ButtonView(context: Context) : View(context) {
         canvas.drawRoundRect(rect, dp(10f), dp(10f), if (isOn) onPaint else offPaint)
 
         val cx = width / 2f
-        val nameHeight = namePaint.descent() - namePaint.ascent()
-        val modeHeight = modePaint.descent() - modePaint.ascent()
-        val gap = dp(4f)
-        val top = height / 2f - (nameHeight + gap + modeHeight) / 2
-
         namePaint.color = if (isOn) Palette.BACKGROUND else Palette.TEXT
         val label = TextUtils.ellipsize(name, namePaint, rect.width() - dp(8f), TextUtils.TruncateAt.END).toString()
-        canvas.drawText(label, cx, top - namePaint.ascent(), namePaint)
-
-        modePaint.color = if (isOn) Palette.BACKGROUND else Palette.TEXT_DIM
-        val modeLabel = if (mode == ButtonMode.LATCH) latchLabel else momentaryLabel
-        val modeText = TextUtils.ellipsize(modeLabel, modePaint, rect.width() - dp(8f), TextUtils.TruncateAt.END).toString()
-        canvas.drawText(modeText, cx, top + nameHeight + gap - modePaint.ascent(), modePaint)
+        canvas.drawText(label, cx, height / 2f - (namePaint.descent() + namePaint.ascent()) / 2, namePaint)
 
         if (mode == ButtonMode.LATCH) {
             val r = dp(4f)
