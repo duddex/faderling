@@ -26,7 +26,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
   - **Knobs & Buttons**: two rows of 4 knobs (drag up/down, relative, no jumps) above a row of 8 square buttons
   - **Keyboard**: 25 keys (two octaves, C to C) sending Note On/Note Off; chords and sliding across keys (glissando); *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72)
   - **Pads**: 4×4 MPC-style drum pads (rectangular, up to 1.6 times wider than tall, to use the screen width) sending Note On/Note Off on channel 10, laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left); every touch retriggers (two-finger rolls), sliding onto other Pads does nothing
-- Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off
+- Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off. Each Button shows its mode under its name, and Latch Buttons have a small LED that lights while they are on
 - 7-bit CC (0–127), send-only, landscape
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
 - Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), plus Keyboard channel and velocity (default 100) and per-Pad name and note with a shared Pad channel and velocity, edited on the settings screen (gear icon); duplicate CC/channel combinations are flagged
