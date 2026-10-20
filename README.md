@@ -2,15 +2,17 @@
 
 [![CI](https://github.com/duddex/faderling/actions/workflows/ci.yml/badge.svg)](https://github.com/duddex/faderling/actions/workflows/ci.yml)
 
-An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs, 8 buttons, a two-octave keyboard and 16 MPC-style drum pads – sending MIDI Control Change (CC) and note messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
+An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 knobs, 8 buttons, a two-octave keyboard, 16 MPC-style drum pads and 8 LFOs – sending MIDI Control Change (CC) and note messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
 
 ![Faders Page](docs/images/faders.png)
 
-![Knobs & Buttons Page](docs/images/knobs-buttons.png)
+![Knobs Page](docs/images/knobs-buttons.png)
 
 ![Keyboard Page](docs/images/keyboard.png)
 
 ![Pads Page](docs/images/pads.png)
+
+![LFOs Page](docs/images/lfos.png)
 
 <details>
 <summary>Settings screen</summary>
@@ -21,11 +23,12 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 
 ## Features
 
-- Four Pages, switched with the tabs in the top bar:
+- Five Pages, switched with the tabs in the top bar:
   - **Faders**: 10 vertical faders that glide to the touched position instead of jumping
-  - **Knobs & Buttons**: two rows of 4 knobs (drag up/down, relative, no jumps) above a row of 8 square buttons
+  - **Knobs**: two rows of 4 knobs (drag up/down, relative, no jumps) above a row of 8 square buttons
   - **Keyboard**: 25 keys (two octaves, C to C) sending Note On/Note Off; chords and sliding across keys (glissando); *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72)
   - **Pads**: 4×4 MPC-style drum pads (rectangular, up to 1.6 times wider than tall, to use the screen width) sending Note On/Note Off on channel 10, laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left); every touch retriggers (two-finger rolls), sliding onto other Pads does nothing
+  - **LFOs**: 8 LFOs that move a CC value up and down along a sine on their own. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). LFOs keep running while you switch Pages, start switched off when the app starts, send at most 50 messages per second, and by default target the Knobs' CCs (102–109) – overlapping with other Controls is intended. Name, CC and channel are set in the settings
 - Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off. Latch Buttons have a small LED in the corner that lights while they are on
 - 7-bit CC (0–127), send-only, landscape
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
@@ -94,7 +97,7 @@ Python 3, standard library only:
 
 ## Documentation
 
-- [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Knob, Button, Keyboard, Key, Pad, Page, Assignment, Session)
+- [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Knob, Button, Keyboard, Key, Pad, LFO, Page, Assignment, Session)
 - [docs/adr](docs/adr) – architecture decisions
 
 ## License

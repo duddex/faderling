@@ -1,6 +1,6 @@
 # Faderling
 
-A tablet app that turns the screen into pages of controls, a keyboard and drum pads that send MIDI messages over the network.
+A tablet app that turns the screen into pages of controls, a keyboard, drum pads and LFOs that send MIDI messages over the network.
 
 ## Language
 
@@ -37,8 +37,8 @@ _Avoid_: Mapping, binding, config
 ### Layout
 
 **Page**:
-One screen of the app; there is a Faders Page, a Knobs & Buttons Page, a Keyboard Page and a Pads Page.
-_Avoid_: Tab, screen, view
+One screen of the app; there is a Faders Page, a Knobs Page (Knobs and Buttons), a Keyboard Page, a Pads Page and an LFOs Page.
+_Avoid_: Tab, screen, view, Knobs & Buttons Page
 
 ### Keyboard
 
@@ -59,6 +59,16 @@ _Avoid_: Drum, trigger, button
 **Pad Assignment**:
 The settings of one Pad: its name and note. Channel and velocity are shared by all Pads.
 _Avoid_: Pad mapping, drum map
+
+### LFOs
+
+**LFO**:
+One of 8 low-frequency oscillators that moves a CC value continuously up and down along a sine between its Min and Max, taking its Speed for one full cycle. It is not a Control; it may target the same CC as a Control on purpose.
+_Avoid_: Modulator, automation, oscillator
+
+**Speed**:
+The time an LFO takes for one full cycle (up and down), in seconds.
+_Avoid_: Rate, frequency
 
 ### Connection
 

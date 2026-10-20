@@ -51,7 +51,7 @@ class SettingsActivity : Activity() {
         findViewById<ImageButton>(R.id.back).setOnClickListener { finish() }
         list = findViewById(R.id.list)
         scroll = findViewById(R.id.scroll)
-        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads).mapIndexed { p, id ->
+        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { p, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(p) } }
         }
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: intent.getIntExtra(EXTRA_PAGE, 0))
@@ -77,6 +77,7 @@ class SettingsActivity : Activity() {
             }
             2 -> keyboardSection(list)
             3 -> padsSection(list)
+            4 -> lfoSection(list)
         }
         scroll.scrollTo(0, 0)
         updateWarnings()
@@ -187,6 +188,39 @@ class SettingsActivity : Activity() {
             addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
             addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
         })
+    }
+
+    private fun lfoSection(list: LinearLayout) {
+        list.addView(text(getString(R.string.section_lfos), Palette.ACCENT, 16f).apply { setPadding(0, dp(12), 0, dp(2)) })
+        list.addView(text(getString(R.string.lfos_hint), Palette.TEXT_DIM, 13f))
+        list.addView(columnLabels(withMode = false))
+        store.loadLfoAssignments().forEachIndexed { i, lfo ->
+            val name = edit(lfo.name, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS, Assignment.MAX_NAME_LENGTH)
+            val cc = edit(lfo.cc.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+            val channel = edit(lfo.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
+            val watcher = object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val c = cc.text.toString().toIntOrNull()?.takeIf { it in Assignment.CC_RANGE }
+                    val ch = channel.text.toString().toIntOrNull()?.takeIf { it in Assignment.CHANNEL_RANGE }
+                    cc.error = if (c == null) getString(R.string.error_cc) else null
+                    channel.error = if (ch == null) getString(R.string.error_channel) else null
+                    if (c != null && ch != null) store.saveLfoAssignment(i, LfoAssignment(name.text.toString(), c, ch))
+                }
+            }
+            name.addTextChangedListener(watcher)
+            cc.addTextChangedListener(watcher)
+            channel.addTextChangedListener(watcher)
+            list.addView(LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(text(getString(R.string.lfo_number, i + 1), Palette.TEXT, 16f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(name, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                addView(cc, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
+            })
+        }
     }
 
     private fun columnLabels(withMode: Boolean): View = LinearLayout(this).apply {

@@ -124,5 +124,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/lfosPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

@@ -45,6 +45,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private val soundingNotes = HashMap<Int, Pair<Int, Int>>()
 
     private lateinit var padGrid: PadGridView
+    private val lfoStrips = mutableListOf<LfoStripView>()
     private var padAssignments: List<PadAssignment> = (0 until Pads.COUNT).map(Pads::default)
     private var padSettings = PadSettings()
 
@@ -67,8 +68,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
             startActivity(Intent(this, SettingsActivity::class.java).putExtra(SettingsActivity.EXTRA_PAGE, currentPage))
         }
 
-        pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage))
-        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads).mapIndexed { page, id ->
+        pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage), findViewById(R.id.lfosPage))
+        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { page, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(page) } }
         }
 
@@ -86,6 +87,14 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
         padGrid = PadGridView(this).apply { listener = this@MainActivity }
         findViewById<FrameLayout>(R.id.padsPage).addView(padGrid)
+
+        val lfoEngine = (application as FaderlingApp).lfos
+        val lfosPage = findViewById<LinearLayout>(R.id.lfosPage)
+        repeat(Lfos.COUNT) { i ->
+            val strip = LfoStripView(this, i, lfoEngine)
+            lfosPage.addView(strip, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            lfoStrips += strip
+        }
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
         showSession(null)
@@ -199,6 +208,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         padAssignments = store.loadPads()
         padSettings = store.loadPadSettings()
         padGrid.names = padAssignments.map { it.name }
+        (application as FaderlingApp).lfos.reloadAssignments()
+        lfoStrips.forEach { it.invalidate() }
     }
 
     override fun onPause() {

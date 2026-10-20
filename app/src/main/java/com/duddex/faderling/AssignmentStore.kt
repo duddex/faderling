@@ -73,4 +73,38 @@ class AssignmentStore(context: Context) {
             .putInt("pads_velocity", settings.velocity)
             .apply()
     }
+
+    fun loadLfoAssignments(): List<LfoAssignment> = (0 until Lfos.COUNT).map { i ->
+        val default = Lfos.default(i)
+        LfoAssignment(
+            name = prefs.getString("lfo_name_$i", null) ?: default.name,
+            cc = prefs.getInt("lfo_cc_$i", default.cc),
+            channel = prefs.getInt("lfo_channel_$i", default.channel),
+        )
+    }
+
+    fun saveLfoAssignment(index: Int, lfo: LfoAssignment) {
+        prefs.edit()
+            .putString("lfo_name_$index", lfo.name)
+            .putInt("lfo_cc_$index", lfo.cc)
+            .putInt("lfo_channel_$index", lfo.channel)
+            .apply()
+    }
+
+    fun loadLfoRanges(): List<LfoRange> = (0 until Lfos.COUNT).map { i ->
+        val default = LfoRange()
+        LfoRange(
+            min = prefs.getInt("lfo_min_$i", default.min),
+            max = prefs.getInt("lfo_max_$i", default.max),
+            speedSeconds = prefs.getFloat("lfo_speed_$i", default.speedSeconds),
+        )
+    }
+
+    fun saveLfoRange(index: Int, range: LfoRange) {
+        prefs.edit()
+            .putInt("lfo_min_$index", range.min)
+            .putInt("lfo_max_$index", range.max)
+            .putFloat("lfo_speed_$index", range.speedSeconds)
+            .apply()
+    }
 }

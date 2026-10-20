@@ -5,8 +5,13 @@
     <string name="session_none">Not connected</string>
     <string name="session_connected">Session: %1$s</string>
     <string name="page_faders">Faders</string>
-    <string name="page_knobs_buttons">Knobs &amp; Buttons</string>
+    <string name="page_knobs_buttons">Knobs</string>
     <string name="page_keyboard">Keyboard</string>
+    <string name="page_lfos">LFOs</string>
+    <string name="section_lfos">LFOs</string>
+    <string name="lfo_number">LFO %1$d</string>
+    <string name="lfo_speed">Speed</string>
+    <string name="lfos_hint">Min, Max and Speed are set directly on the LFOs page. LFOs may use the same CC as other controls.</string>
     <string name="page_pads">Pads</string>
     <string name="section_pads">Pads</string>
     <string name="pad_number">Pad %1$d</string>

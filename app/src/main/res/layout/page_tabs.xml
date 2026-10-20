@@ -24,4 +24,9 @@
         android:id="@+id/tabPads"
         style="@style/PageTab"
         android:text="@string/page_pads" />
+
+    <TextView
+        android:id="@+id/tabLfos"
+        style="@style/PageTab"
+        android:text="@string/page_lfos" />
 </LinearLayout>
