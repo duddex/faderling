@@ -12,9 +12,8 @@ class AssignmentTest {
     private val undefinedCcs = setOf(3, 9, 14, 15) + (20..31) + (85..90) + (102..119)
 
     @Test
-    fun `there are 10 faders, 8 knobs and 8 buttons`() {
+    fun `there are 10 faders and 8 buttons`() {
         assertEquals(10, ControlKind.FADER.count)
-        assertEquals(8, ControlKind.KNOB.count)
         assertEquals(8, ControlKind.BUTTON.count)
     }
 
@@ -41,7 +40,6 @@ class AssignmentTest {
     @Test
     fun `default ranges per Control kind`() {
         assertEquals((20..29).toList(), (0 until 10).map { Assignment.default(ControlKind.FADER, it).cc })
-        assertEquals((102..109).toList(), (0 until 8).map { Assignment.default(ControlKind.KNOB, it).cc })
         assertEquals((110..117).toList(), (0 until 8).map { Assignment.default(ControlKind.BUTTON, it).cc })
     }
 }

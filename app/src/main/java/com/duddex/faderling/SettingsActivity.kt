@@ -51,7 +51,7 @@ class SettingsActivity : Activity() {
         findViewById<ImageButton>(R.id.back).setOnClickListener { finish() }
         list = findViewById(R.id.list)
         scroll = findViewById(R.id.scroll)
-        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { p, id ->
+        tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { p, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(p) } }
         }
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: intent.getIntExtra(EXTRA_PAGE, 0))
@@ -71,10 +71,7 @@ class SettingsActivity : Activity() {
         rows.clear()
         when (p) {
             0 -> section(list, ControlKind.FADER, R.string.section_faders, R.string.fader_number)
-            1 -> {
-                section(list, ControlKind.KNOB, R.string.section_knobs, R.string.knob_number)
-                section(list, ControlKind.BUTTON, R.string.section_buttons, R.string.button_number)
-            }
+            1 -> section(list, ControlKind.BUTTON, R.string.section_buttons, R.string.button_number)
             2 -> keyboardSection(list)
             3 -> padsSection(list)
             4 -> lfoSection(list)
@@ -320,7 +317,6 @@ class SettingsActivity : Activity() {
     private fun label(kind: ControlKind, index: Int): String = getString(
         when (kind) {
             ControlKind.FADER -> R.string.fader_number
-            ControlKind.KNOB -> R.string.knob_number
             ControlKind.BUTTON -> R.string.button_number
         },
         index + 1,

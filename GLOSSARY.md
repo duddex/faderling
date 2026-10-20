@@ -7,16 +7,12 @@ A tablet app that turns the screen into pages of controls, a keyboard, drum pads
 ### Controls
 
 **Control**:
-Any on-screen element that sends a single MIDI CC: a Fader, a Knob or a Button.
+Any on-screen element that sends a single MIDI CC: a Fader or a Button.
 _Avoid_: Widget, element
 
 **Fader**:
 A vertical Control whose position is sent as a CC value.
 _Avoid_: Slider
-
-**Knob**:
-A rotary Control whose position is sent as a CC value, turned by dragging vertically.
-_Avoid_: Encoder, pot, dial
 
 **Button**:
 A Control that is either on or off and sends a CC value for each state.
@@ -37,8 +33,8 @@ _Avoid_: Mapping, binding, config
 ### Layout
 
 **Page**:
-One screen of the app; there is a Faders Page, a Knobs Page (Knobs and Buttons), a Keyboard Page, a Pads Page and an LFOs Page.
-_Avoid_: Tab, screen, view, Knobs & Buttons Page
+One screen of the app; there is a Faders Page, a Buttons Page, a Keyboard Page, a Pads Page and an LFOs Page.
+_Avoid_: Tab, screen, view
 
 ### Keyboard
 

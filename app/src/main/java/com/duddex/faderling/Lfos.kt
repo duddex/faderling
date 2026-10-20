@@ -21,9 +21,11 @@ object Lfos {
     /** At most 50 CC messages per second per LFO. */
     const val MIN_SEND_INTERVAL_MS = 20L
 
-    /** Defaults target the Knobs' CCs (102–109) on channel 1. */
+    /** First default CC; LFOs 1–8 default to CC 102–109, an undefined range not used by any Control. */
+    const val DEFAULT_FIRST_CC = 102
+
     fun default(index: Int): LfoAssignment =
-        LfoAssignment(name = "LFO ${index + 1}", cc = ControlKind.KNOB.defaultFirstCc + index, channel = 1)
+        LfoAssignment(name = "LFO ${index + 1}", cc = DEFAULT_FIRST_CC + index, channel = 1)
 
     /** CC value at [phase] (0 = start, 1 = one full cycle): a sine starting at Min, reaching Max halfway. */
     fun value(range: LfoRange, phase: Double): Int {

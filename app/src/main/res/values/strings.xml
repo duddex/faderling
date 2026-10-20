@@ -5,7 +5,7 @@
     <string name="session_none">Not connected</string>
     <string name="session_connected">Session: %1$s</string>
     <string name="page_faders">Faders</string>
-    <string name="page_knobs_buttons">Knobs</string>
+    <string name="page_buttons">Buttons</string>
     <string name="page_keyboard">Keyboard</string>
     <string name="page_lfos">LFOs</string>
     <string name="section_lfos">LFOs</string>
@@ -26,10 +26,8 @@
     <string name="label_velocity">Velocity</string>
     <string name="error_velocity">1–127</string>
     <string name="section_faders">Faders</string>
-    <string name="section_knobs">Knobs</string>
     <string name="section_buttons">Buttons</string>
     <string name="fader_number">Fader %1$d</string>
-    <string name="knob_number">Knob %1$d</string>
     <string name="button_number">Button %1$d</string>
     <string name="label_name">Name</string>
     <string name="label_cc">CC</string>

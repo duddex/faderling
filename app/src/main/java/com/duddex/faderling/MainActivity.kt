@@ -26,7 +26,6 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private val handler = Handler(Looper.getMainLooper())
 
     private val faders = mutableListOf<FaderView>()
-    private val knobs = mutableListOf<KnobView>()
     private val buttons = mutableListOf<ButtonView>()
     private val refs = HashMap<View, ControlRef>()
     private var assignments: Map<ControlKind, List<Assignment>> = emptyMap()
@@ -68,14 +67,13 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
             startActivity(Intent(this, SettingsActivity::class.java).putExtra(SettingsActivity.EXTRA_PAGE, currentPage))
         }
 
-        pages = listOf(findViewById(R.id.faders), findViewById(R.id.knobsButtons), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage), findViewById(R.id.lfosPage))
-        tabs = listOf(R.id.tabFaders, R.id.tabKnobsButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { page, id ->
+        pages = listOf(findViewById(R.id.faders), findViewById(R.id.buttonsPage), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage), findViewById(R.id.lfosPage))
+        tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { page, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(page) } }
         }
 
         addControls(listOf(findViewById(R.id.faders)), ControlKind.FADER, faders) { FaderView(this).apply { listener = this@MainActivity } }
-        addControls(listOf(findViewById(R.id.knobsRow1), findViewById(R.id.knobsRow2)), ControlKind.KNOB, knobs) { KnobView(this).apply { listener = this@MainActivity } }
-        addControls(listOf(findViewById(R.id.buttons)), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
+        addControls(listOf(findViewById(R.id.buttonsRow1), findViewById(R.id.buttonsRow2)), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
 
         keyboard = KeyboardView(this, if (compact) Keyboard.COMPACT_KEY_COUNT else Keyboard.KEY_COUNT).apply { listener = this@MainActivity }
         lowestNote = if (compact) Keyboard.COMPACT_DEFAULT_LOWEST_NOTE else Keyboard.DEFAULT_LOWEST_NOTE
@@ -193,7 +191,6 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         assignments = ControlKind.entries.associateWith { store.loadAll(it) }
 
         faders.forEachIndexed { i, v -> v.name = assignment(ControlKind.FADER, i).name }
-        knobs.forEachIndexed { i, v -> v.name = assignment(ControlKind.KNOB, i).name }
         buttons.forEachIndexed { i, v ->
             val a = assignment(ControlKind.BUTTON, i)
             val old = previous[ControlKind.BUTTON]?.getOrNull(i)

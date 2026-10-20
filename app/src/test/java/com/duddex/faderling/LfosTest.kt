@@ -7,7 +7,7 @@ import org.junit.Test
 class LfosTest {
 
     @Test
-    fun `8 LFOs default to the Knobs' CCs on channel 1`() {
+    fun `8 LFOs default to CC 102 to 109 on channel 1`() {
         val defaults = (0 until Lfos.COUNT).map(Lfos::default)
         assertEquals((102..109).toList(), defaults.map { it.cc })
         assertTrue(defaults.all { it.channel == 1 })

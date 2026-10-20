@@ -32,20 +32,15 @@ class ButtonView(context: Context) : View(context) {
     private val onPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.ACCENT }
     private val namePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        textSize = dp(15f)
+        textSize = dp(20f)
     }
     private val ledPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rect = RectF()
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        setMeasuredDimension(width, resolveSize(width, heightMeasureSpec))
-    }
-
     override fun onDraw(canvas: Canvas) {
         val inset = dp(6f)
         rect.set(inset, inset, width - inset, height - inset)
-        canvas.drawRoundRect(rect, dp(10f), dp(10f), if (isOn) onPaint else offPaint)
+        canvas.drawRoundRect(rect, dp(14f), dp(14f), if (isOn) onPaint else offPaint)
 
         val cx = width / 2f
         namePaint.color = if (isOn) Palette.BACKGROUND else Palette.TEXT
@@ -53,9 +48,9 @@ class ButtonView(context: Context) : View(context) {
         canvas.drawText(label, cx, height / 2f - (namePaint.descent() + namePaint.ascent()) / 2, namePaint)
 
         if (mode == ButtonMode.LATCH) {
-            val r = dp(4f)
+            val r = dp(6f)
             ledPaint.color = if (isOn) Palette.TEXT else LED_OFF
-            canvas.drawCircle(rect.right - dp(10f), rect.top + dp(10f), r, ledPaint)
+            canvas.drawCircle(rect.right - dp(16f), rect.top + dp(16f), r, ledPaint)
         }
     }
 

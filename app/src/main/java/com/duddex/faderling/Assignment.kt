@@ -4,7 +4,6 @@ enum class ButtonMode { MOMENTARY, LATCH }
 
 enum class ControlKind(val count: Int, val defaultFirstCc: Int, val keyPrefix: String) {
     FADER(10, 20, ""),
-    KNOB(8, 102, "knob_"),
     BUTTON(8, 110, "button_"),
 }
 
