@@ -40,6 +40,10 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 - Runs on Android 5.1 (API 22) and newer
 - Works on phones too: on low screens (less than 450 dp high, e.g. a phone in landscape) the Keyboard shows one octave (C3–C4) with wider Keys; tablets keep two octaves
 
+## Download
+
+Get the signed APK from the [latest release](https://github.com/duddex/faderling/releases/latest) and install it on your tablet or phone (allow installing apps from unknown sources when Android asks). See [CHANGELOG.md](CHANGELOG.md) for what changed between versions.
+
 ## Build and install
 
 Requires the Android SDK (`ANDROID_HOME` or `local.properties` with `sdk.dir`) and a JDK 17+.
@@ -48,6 +52,10 @@ Requires the Android SDK (`ANDROID_HOME` or `local.properties` with `sdk.dir`) a
 .\gradlew.bat assembleDebug
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
+
+Debug builds are installed as **Faderling Debug** (`com.duddex.faderling.debug`), so they can sit next to a release install.
+
+A signed release build (`.\gradlew.bat assembleRelease`) needs the signing key, which is not part of the repository. The build reads its location and passwords from `~/.android/faderling-release.properties` (or the file given with `-Pfaderling.signing=<path>`); without it, the release APK is built unsigned.
 
 Unit tests and lint:
 
