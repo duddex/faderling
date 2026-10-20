@@ -100,6 +100,10 @@ Python 3, standard library only:
 - [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Button, Keyboard, Key, Pad, LFO, Page, Assignment, Session)
 - [docs/adr](docs/adr) – architecture decisions
 
+## How this was built
+
+Faderling was developed with the help of a large language model (LLM). An AI coding assistant wrote most of the code, tests and documentation, following the requirements and design decisions of the project's author.
+
 ## License
 
 [MIT](LICENSE)
