@@ -100,6 +100,10 @@ Python 3, standard library only:
 - [GLOSSARY.md](GLOSSARY.md) – domain language (Control, Fader, Button, Keyboard, Key, Pad, LFO, Page, Assignment, Session)
 - [docs/adr](docs/adr) – architecture decisions
 
+## Background
+
+Faderling started with a simple question: is an old Amazon Fire tablet still good for anything? The Fire 7 from 2017 is stuck on Android 5.1, and many current apps no longer run on it. The first answer was a page of ten faders sending MIDI CC over Wi-Fi to Ableton Live – and it worked well enough that buttons, a keyboard, drum pads and LFOs followed. Faderling still runs on that Fire tablet today, and on current Android tablets and phones as well.
+
 ## How this was built
 
 Faderling was developed with the help of a large language model (LLM). An AI coding assistant wrote most of the code, tests and documentation, following the requirements and design decisions of the project's author.
