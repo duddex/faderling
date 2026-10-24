@@ -13,7 +13,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 
-class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGridView.Listener {
+class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGridView.Listener, XyPadView.Listener {
 
     private class ControlRef(val kind: ControlKind, val index: Int)
 
@@ -45,6 +45,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
     private lateinit var padGrid: PadGridView
     private val lfoStrips = mutableListOf<LfoStripView>()
+    private val xyPadViews = mutableListOf<XyPadView>()
+    private var xyAssignments: List<XyAssignment> = (0 until XyPads.COUNT).map(XyPads::default)
     private var padAssignments: List<PadAssignment> = (0 until Pads.COUNT).map(Pads::default)
     private var padSettings = PadSettings()
 
@@ -67,8 +69,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
             startActivity(Intent(this, SettingsActivity::class.java).putExtra(SettingsActivity.EXTRA_PAGE, currentPage))
         }
 
-        pages = listOf(findViewById(R.id.faders), findViewById(R.id.buttonsPage), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage), findViewById(R.id.lfosPage))
-        tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { page, id ->
+        pages = listOf(findViewById(R.id.faders), findViewById(R.id.buttonsPage), findViewById(R.id.keyboardPage), findViewById(R.id.padsPage), findViewById(R.id.lfosPage), findViewById(R.id.xyPage))
+        tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos, R.id.tabXy).mapIndexed { page, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(page) } }
         }
 
@@ -92,6 +94,13 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
             val strip = LfoStripView(this, i, lfoEngine)
             lfosPage.addView(strip, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
             lfoStrips += strip
+        }
+
+        val xyPage = findViewById<LinearLayout>(R.id.xyPage)
+        repeat(XyPads.COUNT) {
+            val pad = XyPadView(this).apply { listener = this@MainActivity }
+            xyPage.addView(pad, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f))
+            xyPadViews += pad
         }
 
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: 0)
@@ -207,6 +216,23 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         padGrid.names = padAssignments.map { it.name }
         (application as FaderlingApp).lfos.reloadAssignments()
         lfoStrips.forEach { it.invalidate() }
+        xyAssignments = store.loadXyAssignments()
+        xyPadViews.forEachIndexed { i, v -> v.name = xyAssignments[i].name }
+    }
+
+    override fun onXyChanged(view: XyPadView, x: Int?, y: Int?) {
+        handler.removeCallbacksAndMessages(view)
+        val a = xyAssignments[xyPadViews.indexOf(view)]
+        x?.let { endpoint.sendControlChange(a.channel, a.ccX, it) }
+        y?.let { endpoint.sendControlChange(a.channel, a.ccY, it) }
+    }
+
+    override fun onXyReleased(view: XyPadView, x: Int, y: Int) {
+        handler.postAtTime({
+            val a = xyAssignments[xyPadViews.indexOf(view)]
+            endpoint.sendControlChange(a.channel, a.ccX, x)
+            endpoint.sendControlChange(a.channel, a.ccY, y)
+        }, view, SystemClock.uptimeMillis() + RESEND_DELAY_MS)
     }
 
     override fun onPause() {

@@ -107,4 +107,23 @@ class AssignmentStore(context: Context) {
             .putFloat("lfo_speed_$index", range.speedSeconds)
             .apply()
     }
+
+    fun loadXyAssignments(): List<XyAssignment> = (0 until XyPads.COUNT).map { i ->
+        val default = XyPads.default(i)
+        XyAssignment(
+            name = prefs.getString("xy_name_$i", null) ?: default.name,
+            ccX = prefs.getInt("xy_ccx_$i", default.ccX),
+            ccY = prefs.getInt("xy_ccy_$i", default.ccY),
+            channel = prefs.getInt("xy_channel_$i", default.channel),
+        )
+    }
+
+    fun saveXyAssignment(index: Int, xy: XyAssignment) {
+        prefs.edit()
+            .putString("xy_name_$index", xy.name)
+            .putInt("xy_ccx_$index", xy.ccX)
+            .putInt("xy_ccy_$index", xy.ccY)
+            .putInt("xy_channel_$index", xy.channel)
+            .apply()
+    }
 }

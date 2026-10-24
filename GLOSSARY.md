@@ -1,6 +1,6 @@
 # Faderling
 
-A tablet app that turns the screen into pages of controls, a keyboard, drum pads and LFOs that send MIDI messages over the network.
+A tablet app that turns the screen into pages of controls, a keyboard, drum pads, LFOs and XY Pads that send MIDI messages over the network.
 
 ## Language
 
@@ -33,7 +33,7 @@ _Avoid_: Mapping, binding, config
 ### Layout
 
 **Page**:
-One screen of the app; there is a Faders Page, a Buttons Page, a Keyboard Page, a Pads Page and an LFOs Page.
+One screen of the app; there is a Faders Page, a Buttons Page, a Keyboard Page, a Pads Page, an LFOs Page and an XY Page.
 _Avoid_: Tab, screen, view
 
 ### Keyboard
@@ -65,6 +65,16 @@ _Avoid_: Modulator, automation, oscillator
 **Speed**:
 The time an LFO takes for one full cycle (up and down), in seconds.
 _Avoid_: Rate, frequency
+
+### XY Pads
+
+**XY Pad**:
+A square touch area that sends two CC values at once: X from left (0) to right (127) and Y from bottom (0) to top (127). There are two on the XY Page. It is not a Control and not a Pad; always write "XY Pad" in full.
+_Avoid_: Pad (alone), touchpad, Kaoss pad, trackpad
+
+**XY Assignment**:
+The settings of one XY Pad: its name, the CC for X, the CC for Y and the MIDI channel. It may use the same CCs as Controls or LFOs on purpose.
+_Avoid_: XY mapping
 
 ### Connection
 

@@ -8,6 +8,12 @@
     <string name="page_buttons">Buttons</string>
     <string name="page_keyboard">Keyboard</string>
     <string name="page_lfos">LFOs</string>
+    <string name="page_xy">X/Y</string>
+    <string name="section_xy">XY Pads</string>
+    <string name="xy_number">XY %1$d</string>
+    <string name="label_cc_x">CC X</string>
+    <string name="label_cc_y">CC Y</string>
+    <string name="xy_hint">X runs from left (0) to right (127), Y from bottom (0) to top (127). XY Pads may use the same CCs as other controls.</string>
     <string name="section_lfos">LFOs</string>
     <string name="lfo_number">LFO %1$d</string>
     <string name="lfo_speed">Speed</string>

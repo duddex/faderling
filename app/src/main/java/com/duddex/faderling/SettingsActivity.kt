@@ -51,7 +51,7 @@ class SettingsActivity : Activity() {
         findViewById<ImageButton>(R.id.back).setOnClickListener { finish() }
         list = findViewById(R.id.list)
         scroll = findViewById(R.id.scroll)
-        tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos).mapIndexed { p, id ->
+        tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos, R.id.tabXy).mapIndexed { p, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(p) } }
         }
         showPage(savedInstanceState?.getInt(STATE_PAGE) ?: intent.getIntExtra(EXTRA_PAGE, 0))
@@ -75,6 +75,7 @@ class SettingsActivity : Activity() {
             2 -> keyboardSection(list)
             3 -> padsSection(list)
             4 -> lfoSection(list)
+            5 -> xySection(list)
         }
         scroll.scrollTo(0, 0)
         updateWarnings()
@@ -216,6 +217,47 @@ class SettingsActivity : Activity() {
                 addView(cc, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
                 addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
                 addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
+            })
+        }
+    }
+
+    private fun xySection(list: LinearLayout) {
+        list.addView(text(getString(R.string.section_xy), Palette.ACCENT, 16f).apply { setPadding(0, dp(12), 0, dp(2)) })
+        list.addView(text(getString(R.string.xy_hint), Palette.TEXT_DIM, 13f))
+        list.addView(LinearLayout(this).apply {
+            setPadding(0, dp(4), 0, 0)
+            addView(text("", Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(text(getString(R.string.label_name), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            addView(text(getString(R.string.label_cc_x), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(text(getString(R.string.label_cc_y), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+            addView(text(getString(R.string.label_channel), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(MODE_WIDTH), LinearLayout.LayoutParams.WRAP_CONTENT))
+        })
+        store.loadXyAssignments().forEachIndexed { i, xy ->
+            val name = edit(xy.name, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS, Assignment.MAX_NAME_LENGTH)
+            val ccX = edit(xy.ccX.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+            val ccY = edit(xy.ccY.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+            val channel = edit(xy.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
+            val watcher = object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    val x = ccX.text.toString().toIntOrNull()?.takeIf { it in Assignment.CC_RANGE }
+                    val y = ccY.text.toString().toIntOrNull()?.takeIf { it in Assignment.CC_RANGE }
+                    val ch = channel.text.toString().toIntOrNull()?.takeIf { it in Assignment.CHANNEL_RANGE }
+                    ccX.error = if (x == null) getString(R.string.error_cc) else null
+                    ccY.error = if (y == null) getString(R.string.error_cc) else null
+                    channel.error = if (ch == null) getString(R.string.error_channel) else null
+                    if (x != null && y != null && ch != null) store.saveXyAssignment(i, XyAssignment(name.text.toString(), x, y, ch))
+                }
+            }
+            listOf(name, ccX, ccY, channel).forEach { it.addTextChangedListener(watcher) }
+            list.addView(LinearLayout(this).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                addView(text(getString(R.string.xy_number, i + 1), Palette.TEXT, 16f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(name, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                addView(ccX, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(ccY, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
+                addView(channel, LinearLayout.LayoutParams(dp(MODE_WIDTH), LinearLayout.LayoutParams.WRAP_CONTENT))
             })
         }
     }
