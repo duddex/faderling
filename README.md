@@ -14,6 +14,8 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 
 ![LFOs Page](docs/images/lfos.png)
 
+![XY Page](docs/images/xy.png)
+
 <details>
 <summary>Settings screen</summary>
 
