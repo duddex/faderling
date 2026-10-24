@@ -11,13 +11,13 @@ Faderling is an Android app that turns tablets and phones into a touch MIDI cont
 ## Constraints
 
 - **minSdk 22** (Amazon Fire 7, Android 5.1) and targetSdk 36. Because of that: plain Android Views, **no AndroidX, no Compose**, own RTP-MIDI implementation (ADR 0001).
-- All five Pages (Faders, Buttons, Keyboard, Pads, LFOs) must work on tablets **and** phones. Below 450 dp available height the compact layout is used (`ScreenLayout`).
+- All six Pages (Faders, Buttons, Keyboard, Pads, LFOs, X/Y) must work on tablets **and** phones. Below 450 dp available height the compact layout is used (`ScreenLayout`).
 - Faderling only runs while visible: no background service. The Session and the LFOs stop when the app leaves the screen.
 - Send-only: the app never receives MIDI from the DAW.
 
 ## Code
 
-- Kotlin in `app/src/main/java/com/duddex/faderling/`; one custom View per Control type (`FaderView`, `ButtonView`, `KeyboardView`, `PadGridView`, `LfoStripView`), state and settings in plain Kotlin objects (`Keyboard`, `Pads`, `Lfos`, `AppleMidi`).
+- Kotlin in `app/src/main/java/com/duddex/faderling/`; one custom View per Control type (`FaderView`, `ButtonView`, `KeyboardView`, `PadGridView`, `LfoStripView`, `XyPadView`), state and settings in plain Kotlin objects (`Keyboard`, `Pads`, `Lfos`, `XyPads`, `AppleMidi`).
 - Keep logic that can be tested without Android in those plain objects and cover it with JUnit tests in `app/src/test/`.
 - Settings are stored in SharedPreferences via `AssignmentStore`; keep existing keys compatible.
 - Match the existing style; comments only where behaviour is not obvious.
@@ -37,12 +37,14 @@ Faderling is an Android app that turns tablets and phones into a touch MIDI cont
 - Devices are connected via wireless ADB; find them with `adb devices -l` / `adb mdns services` (IPs and IDs change – do not hard-code them in files).
 - `tools/rtpmidi_probe.py <device-ip>` connects as an RTP-MIDI receiver and prints every CC and note – use it to verify what a tap sends. `tools/latency_probe.py` measures network latency.
 - `adb shell input` cannot do multi-touch; such cases are listed in an issue for manual testing.
+- If no device is reachable, the SDK emulator (`emulator -list-avds`) works for phone-layout tests. rtpMIDI on the PC occupies UDP 5004/5005, so forward other host ports: `adb -s emulator-5554 emu redir add udp:15004:5004` and `udp:15005:5005`, then `tools/rtpmidi_probe.py 127.0.0.1 15004`.
+- Devices may be locked or asleep: check `dumpsys window | grep isKeyguardShowing`; never try to bypass a PIN – ask the owner to unlock.
 - Before changing app settings on a device for a test (e.g. via `run-as … shared_prefs`), back them up and restore them afterwards – the devices hold the owner's real settings.
 - Installing or restarting the app ends the owner's rtpMIDI session; mention it.
 
 ## README screenshots
 
-- Taken on the Fire 7 (1024×600) with a probe session named "Studio PC" (copy `tools/rtpmidi_probe.py`, change the name). Rotate the raw `screencap` to landscape (the direction depends on how the tablet is held), crop the system status bar (top 25 px) and navigation bar (bottom 48 px).
+- Taken on the Fire 7 (1024×600) with a probe session named "Studio PC" (copy `tools/rtpmidi_probe.py`, change the name). Rotate the raw `screencap` to landscape: read `dumpsys input | grep -m1 SurfaceOrientation` right before each shot (3 = rotate 90°, otherwise 270°), because the owner may turn the tablet. Then crop the system status bar (top 25 px) and navigation bar (bottom 48 px).
 - The status line must only show "Session: Studio PC" – never the owner's computer name. If the owner's rtpMIDI session is connected, copy the clean status area from an existing screenshot.
 - Check every image before committing.
 
@@ -63,5 +65,5 @@ Faderling is an Android app that turns tablets and phones into a touch MIDI cont
 
 1. Bump `versionName` and `versionCode` in `app/build.gradle.kts`, add a `CHANGELOG.md` entry.
 2. `.\gradlew.bat assembleRelease` – signed with the key from `~/.android/faderling-release.properties` (not in the repo; ask the owner for it). Without the file the APK is unsigned.
-3. Test the release APK on the devices. Installing over a debug-signed `com.duddex.faderling` requires uninstalling it first, which deletes its settings – back them up and ask first.
+3. Test the release APK on the devices: `adb install -r` over the previous release keeps the owner's settings (same key). Stop `com.duddex.faderling.debug` first so only one app uses UDP 5004.
 4. Tag `vX.Y.Z`, push the tag, create a GitHub Release with `faderling-X.Y.Z.apk` attached.
