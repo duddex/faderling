@@ -2,6 +2,12 @@
 
 All notable changes to Faderling are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Faderling runs fullscreen: status and navigation bar are hidden while a Page is shown, for more room for the Controls (e.g. 73 px more height on a Fire 7). Swipe from the screen edge to show them for a moment; the settings screen keeps them.
+
 ## [1.1.0] – 2026-10-24
 
 ### Added

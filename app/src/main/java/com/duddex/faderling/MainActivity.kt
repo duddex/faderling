@@ -235,6 +235,11 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         }, view, SystemClock.uptimeMillis() + RESEND_DELAY_MS)
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) window.hideSystemBars()
+    }
+
     override fun onPause() {
         keyboard.releaseAll()
         padGrid.releaseAll()

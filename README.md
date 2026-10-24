@@ -56,6 +56,7 @@ The gear icon opens the settings on the tab of the Page you are on. Each Page ha
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
 - Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
 - Keeps the screen on while a Page is shown (not on the settings screen, where the normal screen timeout applies); plug the tablet in for longer sessions
+- Runs fullscreen: status and navigation bar are hidden while a Page is shown, swipe from the screen edge to bring them back for a moment. The settings screen keeps them.
 - Runs on Android 5.1 (API 22) and newer, on tablets and phones
 
 ## Download
@@ -116,6 +117,7 @@ After opening the patch, select your rtpMIDI session port as the MIDI device in 
   adb shell settings put system three_finger_slide_down_enabled 0
   ```
   Other manufacturers have similar multi-finger gestures; disable them if they get in the way.
+- **Lenovo tablets (ZUI): a thin bar with "•••" stays at the top in fullscreen.** It is ZUI's window handle (for split screen and floating windows) and cannot be hidden by apps; Faderling leaves room for it so the tabs stay reachable.
 
 ## Tools
 

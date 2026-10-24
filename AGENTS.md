@@ -44,7 +44,7 @@ Faderling is an Android app that turns tablets and phones into a touch MIDI cont
 
 ## README screenshots
 
-- Taken on the Fire 7 (1024×600) with a probe session named "Studio PC" (copy `tools/rtpmidi_probe.py`, change the name). Rotate the raw `screencap` to landscape: read `dumpsys input | grep -m1 SurfaceOrientation` right before each shot (3 = rotate 90°, otherwise 270°), because the owner may turn the tablet. Then crop the system status bar (top 25 px) and navigation bar (bottom 48 px).
+- Taken on the Fire 7 (1024×600) with a probe session named "Studio PC" (copy `tools/rtpmidi_probe.py`, change the name). Rotate the raw `screencap` to landscape: read `dumpsys input | grep -m1 SurfaceOrientation` right before each shot (3 = rotate 90°, otherwise 270°), because the owner may turn the tablet. Pages run fullscreen, so their shots need no cropping; for the settings screen crop the system status bar (top 25 px) and navigation bar (bottom 48 px).
 - The status line must only show "Session: Studio PC" – never the owner's computer name. If the owner's rtpMIDI session is connected, copy the clean status area from an existing screenshot.
 - Check every image before committing.
 
