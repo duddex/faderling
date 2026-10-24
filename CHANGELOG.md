@@ -2,6 +2,17 @@
 
 All notable changes to Faderling are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] – 2026-10-24
+
+### Added
+
+- **X/Y** Page with 2 XY Pads, each sending two CCs at once (X left→right, Y bottom→top; defaults CC 85/86 and 87/88). The dot glides to the touched spot like a fader and stays where you let go; both XY Pads can be played at the same time. Name, CCs and channel are set in the new X/Y settings tab.
+
+### Changed
+
+- A long Session status in the top bar is shortened with "…" instead of pushing the settings button aside.
+- README: one section per Page with its screenshot and description.
+
 ## [1.0.0] – 2026-10-20
 
 First release.
@@ -19,4 +30,5 @@ First release.
 - Runs on Android 5.1 (API 22) and newer, on tablets and phones; compact layout for low screens.
 - Tools: `fader_monitor.py`, `rtpmidi_probe.py` and `latency_probe.py`; a VCV Rack demo patch.
 
+[1.1.0]: https://github.com/duddex/faderling/releases/tag/v1.1.0
 [1.0.0]: https://github.com/duddex/faderling/releases/tag/v1.0.0
