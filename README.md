@@ -4,44 +4,59 @@
 
 An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 buttons, a two-octave keyboard, 16 MPC-style drum pads, 8 LFOs and 2 XY Pads – sending MIDI Control Change (CC) and note messages over Wi-Fi via RTP-MIDI (AppleMIDI). Your computer sees the tablet as a regular MIDI input, e.g. in Ableton Live.
 
+## Pages
+
+Faderling has six Pages, switched with the tabs in the top bar. The top bar also shows the Session status and the gear icon that opens the settings.
+
+### Faders
+
 ![Faders Page](docs/images/faders.png)
+
+10 vertical faders sending CC 20–29. A fader glides to the touched position instead of jumping, then follows your finger.
+
+### Buttons
 
 ![Buttons Page](docs/images/buttons.png)
 
+8 big buttons in two rows of 4, sending CC 110–117: 127 for on, 0 for off. Each button is either **Momentary** (on while held) or **Latch** (each press flips on/off); Latch buttons have a small LED in the corner that lights while they are on.
+
+### Keyboard
+
 ![Keyboard Page](docs/images/keyboard.png)
+
+25 keys (two octaves, C to C) sending Note On/Note Off, with chords and sliding across keys (glissando). *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72). On phones the Keyboard shows one octave (C3–C4) with wider keys.
+
+### Pads
 
 ![Pads Page](docs/images/pads.png)
 
+16 MPC-style drum pads in a 4×4 grid, sending Note On/Note Off on channel 10 and laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left). The pads are up to 1.6 times wider than tall to use the screen width. Every touch retriggers (two-finger rolls); sliding onto other pads does nothing.
+
+### LFOs
+
 ![LFOs Page](docs/images/lfos.png)
+
+8 LFOs that move a CC value up and down along a sine on their own, by default on CC 102–109. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). LFOs keep running while you switch Pages, start switched off when the app starts and send at most 50 messages per second. Sharing CCs with Controls is intended.
+
+### X/Y
 
 ![XY Page](docs/images/xy.png)
 
-<details>
-<summary>Settings screen</summary>
+2 XY Pads, each sending two CCs at once – X from left (0) to right (127), Y from bottom (0) to top (127); defaults CC 85/86 and CC 87/88. The dot glides to the touched spot like a fader, follows your finger and stays where you let go; both XY Pads can be played at the same time. Sharing CCs with other Pages is intended.
+
+### Settings
 
 ![Settings](docs/images/settings.png)
 
-</details>
+The gear icon opens the settings on the tab of the Page you are on. Each Page has its own tab: names, CC numbers or notes, MIDI channels, button modes, and the velocity of the Keyboard (default 100) and Pads. Duplicate CC/channel combinations of faders and buttons are flagged, also across Pages.
 
-## Features
+## General
 
-- Six Pages, switched with the tabs in the top bar:
-  - **Faders**: 10 vertical faders that glide to the touched position instead of jumping
-  - **Buttons**: 8 big buttons in two rows of 4
-  - **Keyboard**: 25 keys (two octaves, C to C) sending Note On/Note Off; chords and sliding across keys (glissando); *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72)
-  - **Pads**: 4×4 MPC-style drum pads (rectangular, up to 1.6 times wider than tall, to use the screen width) sending Note On/Note Off on channel 10, laid out like an Ableton Drum Rack (notes 36–51, C1 bottom left); every touch retriggers (two-finger rolls), sliding onto other Pads does nothing
-  - **LFOs**: 8 LFOs that move a CC value up and down along a sine on their own. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). LFOs keep running while you switch Pages, start switched off when the app starts, send at most 50 messages per second, and by default target CC 102–109 – overlapping with Controls is intended. Name, CC and channel are set in the settings
-  - **X/Y**: 2 XY Pads, each sending two CCs at once – X from left (0) to right (127), Y from bottom (0) to top (127). The dot glides to the touched spot like a Fader, follows your finger and stays where you let go; both XY Pads can be played at the same time. Defaults: CC 85/86 and CC 87/88; sharing CCs with other Pages is intended
-- Buttons are **Momentary** (on while held) or **Latch** (each press flips on/off); they send 127 for on, 0 for off. Latch Buttons have a small LED in the corner that lights while they are on
-- 7-bit CC (0–127), send-only, landscape
+- 7-bit CC (0–127), send-only, landscape; all CCs default to channel 1
 - Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released when you switch Pages or leave the app
-- Per-Control Assignment (name, CC number, MIDI channel, and mode for buttons), plus Keyboard channel and velocity (default 100) and per-Pad name and note with a shared Pad channel and velocity, edited in the settings (gear icon), which have one tab per Page and open on the Page you are on; duplicate CC/channel combinations are flagged, also across Pages
-- Default CCs: faders 20–29, buttons 110–117, LFOs 102–109, XY Pads 85–88, all on channel 1
 - Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
-- Session status shown on the main screen
 - Keeps the screen on while a Page is shown (not on the settings screen, where the normal screen timeout applies); plug the tablet in for longer sessions
-- Runs on Android 5.1 (API 22) and newer
-- Works on phones too: on low screens (less than 450 dp high, e.g. a phone in landscape) the Keyboard shows one octave (C3–C4) with wider Keys; tablets keep two octaves
+- Runs on Android 5.1 (API 22) and newer, on tablets and phones
 
 ## Download
 
