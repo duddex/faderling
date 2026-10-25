@@ -2,7 +2,7 @@
 
 All notable changes to Faderling are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.0] – 2026-10-25
 
 ### Added
 
@@ -46,5 +46,6 @@ First release.
 - Runs on Android 5.1 (API 22) and newer, on tablets and phones; compact layout for low screens.
 - Tools: `fader_monitor.py`, `rtpmidi_probe.py` and `latency_probe.py`; a VCV Rack demo patch.
 
+[1.2.0]: https://github.com/duddex/faderling/releases/tag/v1.2.0
 [1.1.0]: https://github.com/duddex/faderling/releases/tag/v1.1.0
 [1.0.0]: https://github.com/duddex/faderling/releases/tag/v1.0.0
