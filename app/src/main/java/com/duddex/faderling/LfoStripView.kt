@@ -48,6 +48,10 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
     private var dragStartY = 0f
     private var dragStartFraction = 0f
 
+    /** Swipe along the on/off buttons that started on this LFO; every LFO reached takes [swipeRunning]. */
+    private var swipe: RowSwipe? = null
+    private var swipeRunning = false
+
     private fun updateTrack() {
         val w = (width * 0.4f).coerceAtMost(dp(48f))
         val cx = width / 2f
@@ -115,7 +119,11 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
                 parent?.requestDisallowInterceptTouchEvent(true)
                 val y = event.y
                 when {
-                    y < buttonHeight -> engine.setRunning(index, !engine.isRunning(index))
+                    y < buttonHeight -> {
+                        swipeRunning = !engine.isRunning(index)
+                        engine.setRunning(index, swipeRunning)
+                        swipe = RowSwipe(rowIndex())
+                    }
                     y > height - speedHeight -> {
                         drag = Drag.SPEED
                         dragStartY = y
@@ -130,6 +138,7 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
                 invalidate()
             }
             MotionEvent.ACTION_MOVE -> {
+                swipe?.let { swipeAlong(it, event.x) }
                 when (drag) {
                     Drag.MIN, Drag.MAX -> moveHandle(event.y)
                     Drag.SPEED -> {
@@ -141,8 +150,10 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
                 invalidate()
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (event.actionMasked == MotionEvent.ACTION_UP) swipe?.let { swipeAlong(it, event.x) }
                 if (drag != Drag.NONE) engine.setRange(index, engine.range(index), save = true)
                 drag = Drag.NONE
+                swipe = null
                 if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
                 invalidate()
             }
@@ -151,6 +162,16 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
     }
 
     override fun performClick(): Boolean = super.performClick()
+
+    private fun swipeAlong(swipe: RowSwipe, x: Float) {
+        val i = rowIndexAt(x) ?: return
+        swipe.reach(i).forEach { reached ->
+            (rowSibling(reached) as? LfoStripView)?.let {
+                engine.setRunning(it.index, swipeRunning)
+                it.invalidate()
+            }
+        }
+    }
 
     private fun moveHandle(y: Float) {
         val range = engine.range(index)

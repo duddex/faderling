@@ -4,6 +4,11 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+### Added
+
+- Faders Page: slide along the values at the top to set every fader you pass to 127, or along the names at the bottom to set them to 0.
+- LFOs Page: slide along the on/off buttons to switch several LFOs at once; all take the new state of the first one.
+
 ### Changed
 
 - Faderling runs fullscreen: status and navigation bar are hidden while a Page is shown, for more room for the Controls (e.g. 73 px more height on a Fire 7). Swipe from the screen edge to show them for a moment; the settings screen keeps them.

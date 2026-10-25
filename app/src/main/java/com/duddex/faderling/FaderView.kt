@@ -53,6 +53,10 @@ class FaderView(context: Context) : View(context) {
     private var releasePending = false
     private var lastFrameNanos = 0L
 
+    /** Swipe along the value row (to 127) or the name row (to 0) that started on this Fader. */
+    private var swipe: RowSwipe? = null
+    private var swipeValue = 0
+
     private fun updateTrackRect() {
         val trackWidth = (width * 0.55f).coerceAtMost(dp(64f))
         val cx = width / 2f
@@ -85,13 +89,26 @@ class FaderView(context: Context) : View(context) {
                 parent?.requestDisallowInterceptTouchEvent(true)
                 touching = true
                 releasePending = false
-                glideTo(valueAtY(event.y))
+                val rowValue = when {
+                    event.y < labelHeight -> 127
+                    event.y > height - labelHeight -> 0
+                    else -> null
+                }
+                swipe = rowValue?.let { swipeValue = it; RowSwipe(rowIndex()) }
+                glideTo(rowValue?.toFloat() ?: valueAtY(event.y))
                 invalidate()
             }
             MotionEvent.ACTION_MOVE -> {
-                if (gliding) target = valueAtY(event.y) else setValue(valueAtY(event.y))
+                val s = swipe
+                when {
+                    s != null -> swipeAlong(s, event.x)
+                    gliding -> target = valueAtY(event.y)
+                    else -> setValue(valueAtY(event.y))
+                }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (event.actionMasked == MotionEvent.ACTION_UP) swipe?.let { swipeAlong(it, event.x) }
+                swipe = null
                 touching = false
                 invalidate()
                 if (event.actionMasked == MotionEvent.ACTION_UP) performClick()
@@ -102,6 +119,22 @@ class FaderView(context: Context) : View(context) {
     }
 
     override fun performClick(): Boolean = super.performClick()
+
+    private fun swipeAlong(swipe: RowSwipe, x: Float) {
+        val i = rowIndexAt(x) ?: return
+        swipe.reach(i).forEach { (rowSibling(it) as? FaderView)?.swipeTo(swipeValue) }
+    }
+
+    /** Glides to [newValue] for a swipe that started on another Fader, then re-sends like after a release. */
+    private fun swipeTo(newValue: Int) {
+        if (touching) return
+        releasePending = true
+        glideTo(newValue.toFloat())
+        if (!gliding) {
+            releasePending = false
+            listener?.onControlReleased(this, value)
+        }
+    }
 
     private fun valueAtY(y: Float): Float {
         updateTrackRect()
