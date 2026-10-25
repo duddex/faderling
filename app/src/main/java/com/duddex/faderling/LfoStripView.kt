@@ -48,9 +48,8 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
     private var dragStartY = 0f
     private var dragStartFraction = 0f
 
-    /** Swipe along the on/off buttons that started on this LFO; every LFO reached takes [swipeRunning]. */
+    /** Swipe along the on/off buttons that started on this LFO; every LFO reached flips. */
     private var swipe: RowSwipe? = null
-    private var swipeRunning = false
 
     private fun updateTrack() {
         val w = (width * 0.4f).coerceAtMost(dp(48f))
@@ -120,8 +119,7 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
                 val y = event.y
                 when {
                     y < buttonHeight -> {
-                        swipeRunning = !engine.isRunning(index)
-                        engine.setRunning(index, swipeRunning)
+                        engine.setRunning(index, !engine.isRunning(index))
                         swipe = RowSwipe(rowIndex())
                     }
                     y > height - speedHeight -> {
@@ -167,7 +165,7 @@ class LfoStripView(context: Context, private val index: Int, private val engine:
         val i = rowIndexAt(x) ?: return
         swipe.reach(i).forEach { reached ->
             (rowSibling(reached) as? LfoStripView)?.let {
-                engine.setRunning(it.index, swipeRunning)
+                engine.setRunning(it.index, !engine.isRunning(it.index))
                 it.invalidate()
             }
         }

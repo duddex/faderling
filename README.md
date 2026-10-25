@@ -36,7 +36,7 @@ Faderling has six Pages, switched with the tabs in the top bar. The top bar also
 
 ![LFOs Page](docs/images/lfos.png)
 
-8 LFOs that move a CC value up and down along a sine on their own, by default on CC 102–109. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). Slide along the on/off buttons to switch several LFOs at once: the first one flips, every other one you pass takes the same state. LFOs keep running while you switch Pages, start switched off when the app starts and send at most 50 messages per second. Sharing CCs with Controls is intended.
+8 LFOs that move a CC value up and down along a sine on their own, by default on CC 102–109. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). Slide along the on/off buttons to switch several LFOs at once: every LFO you pass flips between on and off. LFOs keep running while you switch Pages, start switched off when the app starts and send at most 50 messages per second. Sharing CCs with Controls is intended.
 
 ### X/Y
 

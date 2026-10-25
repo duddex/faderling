@@ -7,7 +7,7 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 ### Added
 
 - Faders Page: slide along the values at the top to set every fader you pass to 127, or along the names at the bottom to set them to 0.
-- LFOs Page: slide along the on/off buttons to switch several LFOs at once; all take the new state of the first one.
+- LFOs Page: slide along the on/off buttons to switch several LFOs at once; each one you pass flips between on and off.
 
 ### Changed
 
