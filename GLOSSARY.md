@@ -39,7 +39,7 @@ _Avoid_: Tab, screen, view
 ### Keyboard
 
 **Keyboard**:
-A piano-style set of Keys starting on a C that sends MIDI notes: two octaves (25 Keys), or one octave (13 Keys) on low screens such as phones. It is not a Control.
+A piano-style set of Keys starting on a C that sends MIDI notes: two octaves (25 Keys), or one and a half octaves (18 Keys, C to F) on low screens such as phones. It is not a Control.
 _Avoid_: Piano, keys
 
 **Key**:

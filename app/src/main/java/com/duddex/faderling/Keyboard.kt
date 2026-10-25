@@ -11,8 +11,8 @@ object Keyboard {
     /** Two octaves C to C, used when there is enough room. */
     const val KEY_COUNT = 25
 
-    /** One octave C to C, used in the compact layout. */
-    const val COMPACT_KEY_COUNT = 13
+    /** One and a half octaves C to F, used in the compact layout; it must end on a white Key. */
+    const val COMPACT_KEY_COUNT = 18
 
     const val DEFAULT_LOWEST_NOTE = 48
     const val COMPACT_DEFAULT_LOWEST_NOTE = 60

@@ -24,7 +24,7 @@ Faderling has six Pages, switched with the tabs in the top bar. The top bar also
 
 ![Keyboard Page](docs/images/keyboard.png)
 
-25 keys (two octaves, C to C) sending Note On/Note Off, with chords and sliding across keys (glissando). *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72). On phones the Keyboard shows one octave (C3–C4) with wider keys.
+25 keys (two octaves, C to C) sending Note On/Note Off, with chords and sliding across keys (glissando). *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72). On phones the Keyboard shows one and a half octaves (C3–F4) with wider keys.
 
 ### Pads
 

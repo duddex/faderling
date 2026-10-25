@@ -12,6 +12,7 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 ### Changed
 
 - Faderling runs fullscreen: status and navigation bar are hidden while a Page is shown, for more room for the Controls (e.g. 73 px more height on a Fire 7). Swipe from the screen edge to show them for a moment; the settings screen keeps them.
+- Keyboard on phones: one and a half octaves (C3–F4, 18 keys) instead of one octave, so the keys are smaller but still comfortable to hit.
 
 ### Fixed
 

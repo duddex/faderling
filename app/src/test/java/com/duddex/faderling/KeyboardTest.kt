@@ -40,12 +40,15 @@ class KeyboardTest {
     }
 
     @Test
-    fun `one-octave compact keyboard starts at middle C and can go one octave higher`() {
-        assertEquals(13, Keyboard.COMPACT_KEY_COUNT)
+    fun `compact keyboard spans C3 to F4 and can go up to C7 to F8`() {
+        assertEquals(18, Keyboard.COMPACT_KEY_COUNT)
+        assertEquals(11, (0 until Keyboard.COMPACT_KEY_COUNT).count { !Keyboard.isBlack(it) })
+        assertEquals(false, Keyboard.isBlack(Keyboard.COMPACT_KEY_COUNT - 1))
         assertEquals("C3", Keyboard.noteName(Keyboard.COMPACT_DEFAULT_LOWEST_NOTE))
+        assertEquals("F4", Keyboard.noteName(Keyboard.COMPACT_DEFAULT_LOWEST_NOTE + Keyboard.COMPACT_KEY_COUNT - 1))
         assertEquals(96, Keyboard.maxLowestNote(Keyboard.KEY_COUNT))
         assertEquals(108, Keyboard.maxLowestNote(Keyboard.COMPACT_KEY_COUNT))
         assertEquals(108, Keyboard.shift(108, 1, Keyboard.COMPACT_KEY_COUNT))
-        assertEquals(true, 108 + Keyboard.COMPACT_KEY_COUNT - 1 <= 127)
+        assertEquals("F8", Keyboard.noteName(108 + Keyboard.COMPACT_KEY_COUNT - 1))
     }
 }
