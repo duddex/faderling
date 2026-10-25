@@ -8,6 +8,10 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 
 - Faderling runs fullscreen: status and navigation bar are hidden while a Page is shown, for more room for the Controls (e.g. 73 px more height on a Fire 7). Swipe from the screen edge to show them for a moment; the settings screen keeps them.
 
+### Fixed
+
+- Colours are no longer darkened on phones whose dark mode also darkens apps (e.g. Xiaomi MIUI); the orange highlights and white fader caps looked brown and grey.
+
 ## [1.1.0] – 2026-10-24
 
 ### Added
