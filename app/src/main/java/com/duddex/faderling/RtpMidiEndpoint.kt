@@ -22,7 +22,13 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
 
     /** Name actually registered via Bonjour; Android appends " (2)" etc. when [serviceName] is taken. */
     @Volatile
-    private var advertisedName = serviceName
+    var advertisedName = serviceName
+        private set
+
+    /** Control port in use (5004, or a fallback when it is taken); null while not listening. */
+    @Volatile
+    var port: Int? = null
+        private set
 
     fun interface SessionsListener {
         fun onSessionsChanged(peerNames: List<String>)
@@ -60,6 +66,7 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
         handler = Handler(t.looper).apply {
             post {
                 if (openSockets()) {
+                    port = controlSocket!!.localPort
                     receiveLoop(controlSocket!!, isData = false)
                     receiveLoop(dataSocket!!, isData = true)
                     register(controlSocket!!.localPort)
@@ -79,6 +86,7 @@ class RtpMidiEndpoint(context: Context, private val serviceName: String) {
             dataSocket?.close()
             controlSocket = null
             dataSocket = null
+            port = null
         }
         registration?.let { runCatching { nsd.unregisterService(it) } }
         registration = null

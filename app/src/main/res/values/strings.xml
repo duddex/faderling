@@ -4,6 +4,9 @@
     <string name="back">Back</string>
     <string name="session_none">Not connected</string>
     <string name="session_connected">Session: %1$s</string>
+    <string name="status_endpoint">IP %1$s</string>
+    <string name="status_no_wifi">No Wi-Fi</string>
+    <string name="status_name">Name %1$s</string>
     <string name="page_faders">Faders</string>
     <string name="page_buttons">Buttons</string>
     <string name="page_keyboard">Keyboard</string>

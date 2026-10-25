@@ -2,6 +2,12 @@
 
 All notable changes to Faderling are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Without a Session, the top bar cycles through "Not connected", the device's IP address and port, and the name Faderling announces itself with – handy for adding a device by hand in rtpMIDI when it does not show up in the Directory.
+
 ## [1.2.0] – 2026-10-25
 
 ### Added

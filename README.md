@@ -6,7 +6,7 @@ An Android app that turns a tablet into pages of MIDI controls – 10 faders, 8 
 
 ## Pages
 
-Faderling has six Pages, switched with the tabs in the top bar. The top bar also shows the Session status and the gear icon that opens the settings.
+Faderling has six Pages, switched with the tabs in the top bar. The top bar also shows the Session status and the gear icon that opens the settings. Without a Session, the status cycles every few seconds through *Not connected*, the device's IP address and port, and the name Faderling announces itself with.
 
 ### Faders
 
@@ -91,6 +91,8 @@ Every push and pull request is built by [GitHub Actions](https://github.com/dudd
 3. In rtpMIDI, create a session under *My Sessions* (**+**) and enable it.
 4. Select **Faderling &lt;model&gt;** (e.g. *Faderling TB305FU*) in the *Directory* list and click **Connect**. The tablet shows `Session: <PC name>`.
 5. In your DAW, enable the rtpMIDI session port as a MIDI input.
+
+If Faderling does not appear in the *Directory* list (this happens with some phones), add it by hand: click **+** below the *Directory*, enter any name, the IP address and the port shown in Faderling's top bar (*IP &lt;address&gt;:&lt;port&gt;*), then select the new entry and click **Connect**.
 
 On macOS, use *Audio MIDI Setup → MIDI Network Setup* instead of rtpMIDI.
 

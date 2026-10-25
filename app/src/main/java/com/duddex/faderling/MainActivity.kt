@@ -12,6 +12,9 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import java.net.Inet4Address
+import java.net.NetworkInterface
+import java.net.SocketException
 
 class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGridView.Listener, XyPadView.Listener {
 
@@ -253,17 +256,52 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
     override fun onStop() {
         endpoint.listener = null
+        handler.removeCallbacks(idleTick)
         super.onStop()
     }
 
     private fun showSession(peerName: String?) {
+        handler.removeCallbacks(idleTick)
         if (peerName == null) {
-            sessionStatus.text = getString(R.string.session_none)
             sessionStatus.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.status_dot_off, 0, 0, 0)
+            idleStep = 0
+            idleTick.run()
         } else {
             sessionStatus.text = getString(R.string.session_connected, peerName)
             sessionStatus.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.status_dot_on, 0, 0, 0)
         }
+    }
+
+    private var idleStep = 0
+
+    /** Without a Session the status cycles through "Not connected", IP and port, and the announced name. */
+    private val idleTick = object : Runnable {
+        override fun run() {
+            sessionStatus.text = when (idleStep) {
+                0 -> getString(R.string.session_none)
+                1 -> IdleStatus.wifiAddress(localAddresses())
+                    ?.let { labelled(R.string.status_endpoint, IdleStatus.endpoint(it, endpoint.port)) }
+                    ?: getString(R.string.status_no_wifi)
+                else -> labelled(R.string.status_name, IdleStatus.shortName(endpoint.advertisedName))
+            }
+            idleStep = (idleStep + 1) % IdleStatus.STEP_COUNT
+            handler.postDelayed(this, IdleStatus.STEP_MS)
+        }
+    }
+
+    /** Phones have too little room in the top bar for the "IP"/"Name" labels. */
+    private fun labelled(label: Int, value: String): String = if (compact) value else getString(label, value)
+
+    private fun localAddresses(): List<Pair<String, String>> = try {
+        NetworkInterface.getNetworkInterfaces()?.toList().orEmpty()
+            .filter { it.isUp }
+            .flatMap { nif ->
+                nif.inetAddresses.toList()
+                    .filter { it is Inet4Address && !it.isLoopbackAddress }
+                    .mapNotNull { a -> a.hostAddress?.let { nif.name to it } }
+            }
+    } catch (e: SocketException) {
+        emptyList()
     }
 
     override fun onControlChanged(control: View, value: Int) {
