@@ -19,6 +19,9 @@ class FaderView(context: Context) : View(context) {
     var name: String = ""
         set(v) { field = v; invalidate() }
 
+    /** Value a touch on or a slide along the value row sets this Fader to; dragging it still reaches 127. */
+    var max: Int = FaderMax.DEFAULT
+
     var value: Int = 0
         private set
 
@@ -53,9 +56,9 @@ class FaderView(context: Context) : View(context) {
     private var releasePending = false
     private var lastFrameNanos = 0L
 
-    /** Swipe along the value row (to 127) or the name row (to 0) that started on this Fader. */
+    /** Swipe along the value row (to each Fader's [max]) or the name row (to 0) that started on this Fader. */
     private var swipe: RowSwipe? = null
-    private var swipeValue = 0
+    private var swipeToMax = false
 
     private fun updateTrackRect() {
         val trackWidth = (width * 0.55f).coerceAtMost(dp(64f))
@@ -89,12 +92,13 @@ class FaderView(context: Context) : View(context) {
                 parent?.requestDisallowInterceptTouchEvent(true)
                 touching = true
                 releasePending = false
+                val onValueRow = event.y < labelHeight
                 val rowValue = when {
-                    event.y < labelHeight -> 127
+                    onValueRow -> max
                     event.y > height - labelHeight -> 0
                     else -> null
                 }
-                swipe = rowValue?.let { swipeValue = it; RowSwipe(rowIndex()) }
+                swipe = rowValue?.let { swipeToMax = onValueRow; RowSwipe(rowIndex()) }
                 glideTo(rowValue?.toFloat() ?: valueAtY(event.y))
                 invalidate()
             }
@@ -122,7 +126,10 @@ class FaderView(context: Context) : View(context) {
 
     private fun swipeAlong(swipe: RowSwipe, x: Float) {
         val i = rowIndexAt(x) ?: return
-        swipe.reach(i).forEach { (rowSibling(it) as? FaderView)?.swipeTo(swipeValue) }
+        swipe.reach(i).forEach { index ->
+            val fader = rowSibling(index) as? FaderView ?: return@forEach
+            fader.swipeTo(if (swipeToMax) fader.max else 0)
+        }
     }
 
     /** Glides to [newValue] for a swipe that started on another Fader, then re-sends like after a release. */

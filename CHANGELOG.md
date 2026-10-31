@@ -6,6 +6,7 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 
 ### Added
 
+- Faders Page: each fader has a Max (0–127, default 100) in the Faders settings. Touching or sliding along the values at the top sets faders to their Max instead of always 127; dragging a fader still goes up to 127.
 - Without a Session, the top bar cycles through "Not connected", the device's IP address and port, and the name Faderling announces itself with – handy for adding a device by hand in rtpMIDI when it does not show up in the Directory.
 
 ## [1.2.0] – 2026-10-25

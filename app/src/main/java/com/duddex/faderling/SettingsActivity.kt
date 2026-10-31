@@ -83,8 +83,12 @@ class SettingsActivity : Activity() {
 
     private fun section(list: LinearLayout, kind: ControlKind, titleRes: Int, labelRes: Int) {
         list.addView(text(getString(titleRes), Palette.ACCENT, 16f).apply { setPadding(0, dp(12), 0, dp(2)) })
-        list.addView(columnLabels(kind == ControlKind.BUTTON))
-        (0 until kind.count).forEach { i -> list.addView(row(kind, i, assignments.getValue(kind to i), getString(labelRes, i + 1))) }
+        if (kind == ControlKind.FADER) list.addView(text(getString(R.string.faders_hint), Palette.TEXT_DIM, 13f))
+        list.addView(columnLabels(kind))
+        val maxes = if (kind == ControlKind.FADER) store.loadFaderMaxes() else emptyList()
+        (0 until kind.count).forEach { i ->
+            list.addView(row(kind, i, assignments.getValue(kind to i), getString(labelRes, i + 1), maxes.getOrNull(i)))
+        }
     }
 
     private fun keyboardSection(list: LinearLayout) {
@@ -191,7 +195,7 @@ class SettingsActivity : Activity() {
     private fun lfoSection(list: LinearLayout) {
         list.addView(text(getString(R.string.section_lfos), Palette.ACCENT, 16f).apply { setPadding(0, dp(12), 0, dp(2)) })
         list.addView(text(getString(R.string.lfos_hint), Palette.TEXT_DIM, 13f))
-        list.addView(columnLabels(withMode = false))
+        list.addView(columnLabels(null))
         store.loadLfoAssignments().forEachIndexed { i, lfo ->
             val name = edit(lfo.name, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS, Assignment.MAX_NAME_LENGTH)
             val cc = edit(lfo.cc.toString(), InputType.TYPE_CLASS_NUMBER, 3)
@@ -262,19 +266,25 @@ class SettingsActivity : Activity() {
         }
     }
 
-    private fun columnLabels(withMode: Boolean): View = LinearLayout(this).apply {
+    private fun columnLabels(kind: ControlKind?): View = LinearLayout(this).apply {
         addView(text("", Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
         addView(text(getString(R.string.label_name), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         addView(text(getString(R.string.label_cc), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
         addView(text(getString(R.string.label_channel), Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
-        addView(text(if (withMode) getString(R.string.label_mode) else "", Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(MODE_WIDTH), LinearLayout.LayoutParams.WRAP_CONTENT))
+        val last = when (kind) {
+            ControlKind.FADER -> getString(R.string.label_max)
+            ControlKind.BUTTON -> getString(R.string.label_mode)
+            null -> ""
+        }
+        addView(text(last, Palette.TEXT_DIM, 13f), LinearLayout.LayoutParams(dp(MODE_WIDTH), LinearLayout.LayoutParams.WRAP_CONTENT))
     }
 
-    private fun row(kind: ControlKind, index: Int, a: Assignment, label: String): View {
+    private fun row(kind: ControlKind, index: Int, a: Assignment, label: String, max: Int?): View {
         val name = edit(a.name, InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS, Assignment.MAX_NAME_LENGTH)
         val cc = edit(a.cc.toString(), InputType.TYPE_CLASS_NUMBER, 3)
         val channel = edit(a.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
         val mode = if (kind == ControlKind.BUTTON) modeSwitch(a.mode) else null
+        val maxField = max?.let { edit(it.toString(), InputType.TYPE_CLASS_NUMBER, 3) }
         val warning = text("", Palette.ACCENT, 13f).apply { visibility = View.GONE }
         val r = Row(kind, index, name, cc, channel, mode, warning).apply { current = a }
         rows += r
@@ -287,6 +297,15 @@ class SettingsActivity : Activity() {
         name.addTextChangedListener(watcher)
         cc.addTextChangedListener(watcher)
         channel.addTextChangedListener(watcher)
+        maxField?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val m = maxField.text.toString().toIntOrNull()?.takeIf { it in FaderMax.RANGE }
+                maxField.error = if (m == null) getString(R.string.error_max) else null
+                if (m != null) store.saveFaderMax(index, m)
+            }
+        })
         mode?.setOnClickListener {
             it.tag = if (it.tag == ButtonMode.LATCH) ButtonMode.MOMENTARY else ButtonMode.LATCH
             showMode(it as TextView)
@@ -299,7 +318,10 @@ class SettingsActivity : Activity() {
             addView(name, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
             addView(cc, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
             addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
-            addView(mode ?: View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), dp(36)))
+            addView(
+                maxField ?: mode ?: View(this@SettingsActivity),
+                LinearLayout.LayoutParams(dp(MODE_WIDTH), if (mode != null) dp(36) else LinearLayout.LayoutParams.WRAP_CONTENT),
+            )
         }
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL

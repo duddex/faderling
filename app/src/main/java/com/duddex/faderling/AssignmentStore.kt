@@ -29,6 +29,14 @@ class AssignmentStore(context: Context) {
         editor.apply()
     }
 
+    fun loadFaderMaxes(): List<Int> = (0 until ControlKind.FADER.count).map { i ->
+        FaderMax.clamp(prefs.getInt("fader_max_$i", FaderMax.DEFAULT))
+    }
+
+    fun saveFaderMax(index: Int, max: Int) {
+        prefs.edit().putInt("fader_max_$index", FaderMax.clamp(max)).apply()
+    }
+
     fun loadKeyboard(): KeyboardSettings {
         val default = KeyboardSettings()
         return KeyboardSettings(

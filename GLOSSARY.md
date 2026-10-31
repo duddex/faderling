@@ -14,6 +14,10 @@ _Avoid_: Widget, element
 A vertical Control whose position is sent as a CC value.
 _Avoid_: Slider
 
+**Fader Max**:
+The value that a touch on, or a slide along, a Fader's value row sets it to: 0–127, default 100. Dragging the Fader itself still reaches 127. The Faders settings call it *Max*.
+_Avoid_: Limit, cap, ceiling
+
 **Button**:
 A Control that is either on or off and sends a CC value for each state.
 _Avoid_: Switch, trigger

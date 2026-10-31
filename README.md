@@ -12,7 +12,7 @@ Faderling has six Pages, switched with the tabs in the top bar. The top bar also
 
 ![Faders Page](docs/images/faders.png)
 
-10 vertical faders sending CC 20–29. A fader glides to the touched position instead of jumping, then follows your finger. Slide along the values at the top to set every fader you pass to 127, or along the names at the bottom to set them to 0.
+10 vertical faders sending CC 20–29. A fader glides to the touched position instead of jumping, then follows your finger all the way to 127. Slide along the values at the top to set every fader you pass to its Max – 100 by default, set per fader in the Faders settings – or along the names at the bottom to set them to 0.
 
 ### Buttons
 

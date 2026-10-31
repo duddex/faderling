@@ -203,6 +203,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         assignments = ControlKind.entries.associateWith { store.loadAll(it) }
 
         faders.forEachIndexed { i, v -> v.name = assignment(ControlKind.FADER, i).name }
+        store.loadFaderMaxes().forEachIndexed { i, max -> faders[i].max = max }
         buttons.forEachIndexed { i, v ->
             val a = assignment(ControlKind.BUTTON, i)
             val old = previous[ControlKind.BUTTON]?.getOrNull(i)
