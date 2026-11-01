@@ -23,6 +23,9 @@ class LfoEngine(private val store: AssignmentStore, private val endpoint: RtpMid
     private var lastTick = 0L
     private var active = false
 
+    /** Called after an LFO is switched on/off or the engine stops, e.g. for the LFOs tab indicator. */
+    var onStateChanged: (() -> Unit)? = null
+
     var assignments: List<LfoAssignment> = store.loadLfoAssignments()
         private set
     private val ranges: MutableList<LfoRange> = store.loadLfoRanges().toMutableList()
@@ -53,6 +56,7 @@ class LfoEngine(private val store: AssignmentStore, private val endpoint: RtpMid
             s.lastSentAt = 0L
             update(index, SystemClock.uptimeMillis())
         }
+        onStateChanged?.invoke()
     }
 
     /** Starts ticking; called when the app becomes visible. LFOs themselves stay off until switched on. */
@@ -65,9 +69,11 @@ class LfoEngine(private val store: AssignmentStore, private val endpoint: RtpMid
 
     /** Stops ticking and switches every LFO off; called when the app leaves the screen. */
     fun stop() {
+        val wasRunning = states.any { it.running }
         active = false
         handler.removeCallbacks(tick)
         states.forEach { it.running = false }
+        if (wasRunning) onStateChanged?.invoke()
     }
 
     private val tick = object : Runnable {

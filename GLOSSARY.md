@@ -40,6 +40,10 @@ _Avoid_: Mapping, binding, config
 One screen of the app; there is a Faders Page, a Buttons Page, a Keyboard Page, a Pads Page, an LFOs Page and an XY Page.
 _Avoid_: Tab, screen, view
 
+**Page Indicator**:
+The small dot after the Keyboard or LFOs tab label that shows while the Arp is playing or any LFO is running.
+_Avoid_: LED, badge
+
 ### Keyboard
 
 **Keyboard**:
@@ -51,11 +55,11 @@ One white or black key of the Keyboard; pressing it sends Note On, releasing it 
 _Avoid_: Note
 
 **Hold**:
-A Keyboard toggle that keeps Keys sounding after they are released. While at least one Key is held, new Keys add to the latched chord; after all Keys are released, the next Key or chord replaces it. It works with the Arpeggiator on or off, and is not the Latch mode of a Button.
+A Keyboard toggle that keeps Keys sounding after they are released. While at least one Key is held, new Keys add to the latched chord; after all Keys are released, the next Key or chord replaces it. It works with the Arpeggiator on or off, and is not the Latch mode of a Button. With the Arp on, Hold also keeps the Arp playing while you switch Pages.
 _Avoid_: Latch (for the Keyboard), Sustain
 
 **Arpeggiator**:
-A Keyboard mode that plays the held Notes one at a time at an internal Tempo instead of as a chord. The bar button and the short form are *Arp*.
+A Keyboard mode that plays the held Notes one at a time at an internal Tempo instead of as a chord. The bar button and the short form are *Arp*; a Page Indicator on the Keyboard tab shows while it plays.
 _Avoid_: Arpeggio, sequencer
 
 **Arp Group**:
@@ -95,7 +99,7 @@ _Avoid_: Pad mapping, drum map
 ### LFOs
 
 **LFO**:
-One of 8 low-frequency oscillators that moves a CC value continuously up and down along a sine between its Min and Max, taking its Speed for one full cycle. It is not a Control; it may target the same CC as a Control on purpose.
+One of 8 low-frequency oscillators that moves a CC value continuously up and down along a sine between its Min and Max, taking its Speed for one full cycle. It is not a Control; it may target the same CC as a Control on purpose. A Page Indicator on the LFOs tab shows while any LFO is running.
 _Avoid_: Modulator, automation, oscillator
 
 **Speed**:

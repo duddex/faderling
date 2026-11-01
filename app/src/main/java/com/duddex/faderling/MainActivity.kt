@@ -41,6 +41,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private lateinit var holdButton: TextView
     private lateinit var arpButton: TextView
     private lateinit var arpEngine: ArpEngine
+    private lateinit var lfoEngine: LfoEngine
     private lateinit var arpPatternValue: TextView
     private lateinit var arpTempoValue: TextView
     private lateinit var arpTempoBar: SeekBar
@@ -83,6 +84,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
         store = AssignmentStore(this)
         endpoint = (application as FaderlingApp).endpoint
+        lfoEngine = (application as FaderlingApp).lfos
         sessionStatus = findViewById(R.id.sessionStatus)
         findViewById<ImageButton>(R.id.settingsButton).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java).putExtra(SettingsActivity.EXTRA_PAGE, currentPage))
@@ -92,6 +94,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos, R.id.tabXy).mapIndexed { page, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(page) } }
         }
+        val dotPadding = (3 * resources.displayMetrics.density).toInt()
+        tabs.forEach { it.compoundDrawablePadding = dotPadding }
 
         addControls(listOf(findViewById(R.id.faders)), ControlKind.FADER, faders) { FaderView(this).apply { listener = this@MainActivity } }
         addControls(listOf(findViewById(R.id.buttonsRow1), findViewById(R.id.buttonsRow2)), ControlKind.BUTTON, buttons) { ButtonView(this).apply { listener = this@MainActivity } }
@@ -105,6 +109,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         holdButton = findViewById<TextView>(R.id.holdButton).apply { setOnClickListener { setHold(!heldNotes.hold) } }
         arpButton = findViewById<TextView>(R.id.arpButton).apply { setOnClickListener { setArp(!arpOn) } }
         arpEngine = ArpEngine(::noteOn, ::noteOff)
+        arpEngine.onRunningChanged = { updateTabIndicators() }
         setUpArpGroup()
         showKeyboardRange()
         showArp()
@@ -112,7 +117,6 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         padGrid = PadGridView(this).apply { listener = this@MainActivity }
         findViewById<FrameLayout>(R.id.padsPage).addView(padGrid)
 
-        val lfoEngine = (application as FaderlingApp).lfos
         val lfosPage = findViewById<LinearLayout>(R.id.lfosPage)
         repeat(Lfos.COUNT) { i ->
             val strip = LfoStripView(this, i, lfoEngine)
@@ -149,12 +153,14 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
     private fun showPage(page: Int) {
         if (page != currentPage) {
-            stopKeyboard()
+            if (currentPage == KEYBOARD_PAGE) leaveKeyboardPage()
             padGrid.releaseAll()
         }
         currentPage = page
         pages.forEachIndexed { i, v -> v.visibility = if (i == page) View.VISIBLE else View.GONE }
         tabs.forEachIndexed { i, t -> t.isSelected = i == page }
+        if (page == KEYBOARD_PAGE) showLatched()
+        updateTabIndicators()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -315,6 +321,17 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         chordNotes.clear()
     }
 
+    /** Leaves the Keyboard Page; the Arp keeps running if Hold is on and it has Notes. */
+    private fun leaveKeyboardPage() {
+        keyboard.releaseAll()
+        if (arpOn && arpEngine.isRunning && heldNotes.hold && heldNotes.notes().isNotEmpty()) {
+            showLatched()
+            updateTabIndicators()
+            return
+        }
+        stopKeyboard()
+    }
+
     /** Stops the Arp and releases every Key and Note, e.g. when leaving the Page or the App. */
     private fun stopKeyboard() {
         keyboard.releaseAll()
@@ -325,6 +342,16 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         arpButton.isSelected = false
         holdButton.isSelected = false
         showLatched()
+        updateTabIndicators()
+    }
+
+    private fun updateTabIndicators() {
+        setTabIndicator(tabs[KEYBOARD_PAGE], arpEngine.isRunning)
+        setTabIndicator(tabs[LFO_PAGE], (0 until Lfos.COUNT).any { lfoEngine.isRunning(it) })
+    }
+
+    private fun setTabIndicator(tab: TextView, on: Boolean) {
+        tab.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, if (on) R.drawable.tab_dot else 0, 0)
     }
 
     private fun showLatched() {
@@ -386,7 +413,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         padAssignments = store.loadPads()
         padSettings = store.loadPadSettings()
         padGrid.names = padAssignments.map { it.name }
-        (application as FaderlingApp).lfos.reloadAssignments()
+        lfoEngine.reloadAssignments()
         lfoStrips.forEach { it.invalidate() }
         xyAssignments = store.loadXyAssignments()
         xyPadViews.forEachIndexed { i, v -> v.name = xyAssignments[i].name }
@@ -421,10 +448,13 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
     override fun onStart() {
         super.onStart()
+        lfoEngine.onStateChanged = { updateTabIndicators() }
+        updateTabIndicators()
         endpoint.listener = RtpMidiEndpoint.SessionsListener { names -> showSession(names.takeIf { it.isNotEmpty() }?.joinToString(", ")) }
     }
 
     override fun onStop() {
+        lfoEngine.onStateChanged = null
         endpoint.listener = null
         handler.removeCallbacks(idleTick)
         super.onStop()
@@ -495,5 +525,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private companion object {
         const val RESEND_DELAY_MS = 150L
         const val STATE_PAGE = "page"
+        const val KEYBOARD_PAGE = 2
+        const val LFO_PAGE = 4
     }
 }

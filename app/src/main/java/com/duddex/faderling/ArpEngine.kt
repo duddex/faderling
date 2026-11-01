@@ -29,6 +29,9 @@ class ArpEngine(
     var isRunning = false
         private set
 
+    /** Called whenever the Arp starts or stops, e.g. to update the Keyboard tab indicator. */
+    var onRunningChanged: (() -> Unit)? = null
+
     fun start(notes: List<Int>, settings: ArpSettings, channel: Int, velocity: Int) {
         stop()
         this.notes = notes
@@ -43,6 +46,7 @@ class ArpEngine(
         previousRandom = null
         stepAt = SystemClock.uptimeMillis()
         handler.postAtTime(tick, token, stepAt)
+        onRunningChanged?.invoke()
     }
 
     /** The held Notes changed; a sounding Note finishes its Gate and the next step uses the new set. */
@@ -78,9 +82,11 @@ class ArpEngine(
     }
 
     fun stop() {
+        val wasRunning = isRunning
         isRunning = false
         handler.removeCallbacksAndMessages(token)
         endSoundingNote()
+        if (wasRunning) onRunningChanged?.invoke()
     }
 
     private val tick: Runnable = object : Runnable {

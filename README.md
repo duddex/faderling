@@ -26,7 +26,7 @@ Faderling has six Pages, switched with the tabs in the top bar. The top bar also
 
 25 keys (two octaves, C to C) sending Note On/Note Off, with chords and sliding across keys (glissando). *Oct −/Oct +* shift the range, shown in Ableton's note names (default C2–C4, i.e. notes 48–72). On phones the Keyboard shows one and a half octaves (C3–F4) with wider keys.
 
-The Keyboard bar has **Hold** and **Arp** next to *Oct −/Oct +*. Below it, the **Arp** group has the Pattern, Tempo, Rate, Octaves and Gate controls directly on the page: tap Pattern, Rate or Octaves to cycle, drag the Tempo and Gate sliders. The same values are in the Keyboard settings. Hold keeps the notes sounding after you lift your fingers; while you hold at least one key, new notes add to the latched chord, and after you release everything the next chord replaces it. Hold works with the Arp off too, as a chord latch. Arp plays the held notes one at a time: Up, Down, Up/Down, Random or As played, over 1–4 octaves, with Tempo 40–240 BPM, Rate 1/4 to 1/32 including triplets, and Gate 10–90 %. The Arp uses its own tempo because Faderling only sends MIDI and cannot follow the MIDI clock of the DAW; set the same BPM as your DAW for the same speed, but the Arp is not locked to the DAW's beat.
+The Keyboard bar has **Hold** and **Arp** next to *Oct −/Oct +*. Below it, the **Arp** group has the Pattern, Tempo, Rate, Octaves and Gate controls directly on the page: tap Pattern, Rate or Octaves to cycle, drag the Tempo and Gate sliders. The same values are in the Keyboard settings. Hold keeps the notes sounding after you lift your fingers; while you hold at least one key, new notes add to the latched chord, and after you release everything the next chord replaces it. Hold works with the Arp off too, as a chord latch. With Hold on, the Arp keeps playing when you switch to another Page; a dot on the Keyboard tab shows while it plays. Arp plays the held notes one at a time: Up, Down, Up/Down, Random or As played, over 1–4 octaves, with Tempo 40–240 BPM, Rate 1/4 to 1/32 including triplets, and Gate 10–90 %. The Arp uses its own tempo because Faderling only sends MIDI and cannot follow the MIDI clock of the DAW; set the same BPM as your DAW for the same speed, but the Arp is not locked to the DAW's beat.
 
 ### Pads
 
@@ -38,7 +38,7 @@ The Keyboard bar has **Hold** and **Arp** next to *Oct −/Oct +*. Below it, the
 
 ![LFOs Page](docs/images/lfos.png)
 
-8 LFOs that move a CC value up and down along a sine on their own, by default on CC 102–109. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). Slide along the on/off buttons to switch several LFOs at once: every LFO you pass flips between on and off. LFOs keep running while you switch Pages, start switched off when the app starts and send at most 50 messages per second. Sharing CCs with Controls is intended.
+8 LFOs that move a CC value up and down along a sine on their own, by default on CC 102–109. Each has an on/off button (with LED), a bar where you drag the Min and Max handles (Min above Max runs inverted) and a Speed of 0.2–120 s per cycle (drag up/down). Slide along the on/off buttons to switch several LFOs at once: every LFO you pass flips between on and off. LFOs keep running while you switch Pages, start switched off when the app starts and send at most 50 messages per second; a dot on the LFOs tab shows while any LFO is running. Sharing CCs with Controls is intended.
 
 ### X/Y
 
@@ -55,7 +55,7 @@ The gear icon opens the settings on the tab of the Page you are on. Each Page ha
 ## General
 
 - 7-bit CC (0–127), send-only, landscape; all CCs default to channel 1
-- Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes are released and the Arpeggiator stops when you switch Pages or leave the app
+- Every Control re-sends its final value shortly after release, and every Note Off is sent twice, to make up for lost Wi-Fi packets; held notes and the Arpeggiator stop when you leave the app. With Hold on, the Arpeggiator keeps playing when you switch Pages; the Keyboard and LFOs tabs show a dot while the Arp or any LFO is running.
 - Advertises itself via Bonjour as **Faderling** plus the device model (e.g. *Faderling KFAUWI*), so several tablets can be told apart; the receiver starts the Session
 - Keeps the screen on while a Page is shown (not on the settings screen, where the normal screen timeout applies); plug the tablet in for longer sessions
 - Runs fullscreen: status and navigation bar are hidden while a Page is shown, swipe from the screen edge to bring them back for a moment. The settings screen keeps them.
