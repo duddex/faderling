@@ -8,6 +8,7 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 
 - Faders Page: each fader has a Max (0–127, default 100) in the Faders settings. Touching or sliding along the values at the top sets faders to their Max instead of always 127; dragging a fader still goes up to 127.
 - Without a Session, the top bar cycles through "Not connected", the device's IP address and port, and the name Faderling announces itself with – handy for adding a device by hand in rtpMIDI when it does not show up in the Directory.
+- Keyboard Page: **Hold** and **Arp** in the Keyboard bar next to the octave buttons, plus an **Arp** group that sets Pattern, Tempo, Rate, Octaves and Gate directly on the page (the same values are in the Keyboard settings). Hold keeps notes sounding after release (also without the Arp); the Arpeggiator plays them one at a time with Up, Down, Up/Down, Random and As played patterns over 1–4 octaves, at 40–240 BPM and 1/4–1/32 with a 10–90 % Gate. The Arp has its own tempo because Faderling cannot receive MIDI clock.
 
 ## [1.2.0] – 2026-10-25
 

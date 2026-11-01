@@ -50,6 +50,38 @@ _Avoid_: Piano, keys
 One white or black key of the Keyboard; pressing it sends Note On, releasing it sends Note Off.
 _Avoid_: Note
 
+**Hold**:
+A Keyboard toggle that keeps Keys sounding after they are released. While at least one Key is held, new Keys add to the latched chord; after all Keys are released, the next Key or chord replaces it. It works with the Arpeggiator on or off, and is not the Latch mode of a Button.
+_Avoid_: Latch (for the Keyboard), Sustain
+
+**Arpeggiator**:
+A Keyboard mode that plays the held Notes one at a time at an internal Tempo instead of as a chord. The bar button and the short form are *Arp*.
+_Avoid_: Arpeggio, sequencer
+
+**Arp Group**:
+The row of Arpeggiator controls on the Keyboard Page: Pattern, Tempo, Rate, Octaves and Gate. It is always visible; the Keyboard settings show the same values.
+_Avoid_: Arp panel, arp bar
+
+**Arp Pattern**:
+The order in which the Arpeggiator plays the held Notes: Up, Down, Up/Down, Random or As played.
+_Avoid_: Mode, direction
+
+**Tempo**:
+The Arpeggiator's internal BPM (40–240). Faderling never receives MIDI, so it cannot follow a DAW's clock.
+_Avoid_: Speed (that is an LFO term), BPM in prose
+
+**Rate**:
+The length of one Arpeggiator step as a note division (1/4 to 1/32, including 1/8T and 1/16T).
+_Avoid_: Speed, tempo (Tempo is the BPM)
+
+**Octaves**:
+How many octaves the Arpeggiator repeats the held Notes over (1–4).
+_Avoid_: Range (that is the Keyboard's Oct −/+ range)
+
+**Gate**:
+How much of one Arpeggiator step a Note sounds, as a percentage (10–90 %).
+_Avoid_: Length
+
 ### Pads
 
 **Pad**:

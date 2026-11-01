@@ -26,6 +26,9 @@ class KeyboardView @JvmOverloads constructor(context: Context, val keyCount: Int
     private val pointers = SparseIntArray()
     private val pressCount = IntArray(keyCount)
 
+    /** Keys kept by Hold after their finger was lifted; drawn dimmer than touched Keys. */
+    private val latched = BooleanArray(keyCount)
+
     /** Pointers whose Keys were force-released; they are ignored until lifted so they don't re-trigger. */
     private val ignoredPointers = HashSet<Int>()
 
@@ -34,6 +37,7 @@ class KeyboardView @JvmOverloads constructor(context: Context, val keyCount: Int
     private val blackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.TRACK }
     private val blackBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.BACKGROUND }
     private val pressedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.ACCENT }
+    private val latchedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Palette.ACCENT; alpha = 0x99 }
     private val rect = RectF()
 
     private val whiteWidth get() = width.toFloat() / whiteCount
@@ -46,13 +50,13 @@ class KeyboardView @JvmOverloads constructor(context: Context, val keyCount: Int
             if (Keyboard.isBlack(i)) continue
             val x = whitePosition(i) * whiteWidth
             rect.set(x + gap / 2, 0f, x + whiteWidth - gap / 2, height.toFloat())
-            canvas.drawRoundRect(rect, radius, radius, if (pressCount[i] > 0) pressedPaint else whitePaint)
+            canvas.drawRoundRect(rect, radius, radius, paintFor(i, whitePaint))
         }
         for (i in 0 until keyCount) {
             if (!Keyboard.isBlack(i)) continue
             blackRect(i, rect)
             canvas.drawRoundRect(rect.left - gap, rect.top, rect.right + gap, rect.bottom + gap, radius, radius, blackBorderPaint)
-            canvas.drawRoundRect(rect, radius, radius, if (pressCount[i] > 0) pressedPaint else blackPaint)
+            canvas.drawRoundRect(rect, radius, radius, paintFor(i, blackPaint))
         }
     }
 
@@ -95,6 +99,25 @@ class KeyboardView @JvmOverloads constructor(context: Context, val keyCount: Int
     }
 
     override fun performClick(): Boolean = super.performClick()
+
+    /** Keys kept by Hold after their finger was lifted; [indices] are Key indices of the current range. */
+    fun setLatched(indices: Set<Int>) {
+        var changed = false
+        for (i in 0 until keyCount) {
+            val value = i in indices
+            if (latched[i] != value) {
+                latched[i] = value
+                changed = true
+            }
+        }
+        if (changed) invalidate()
+    }
+
+    private fun paintFor(index: Int, normal: Paint): Paint = when {
+        pressCount[index] > 0 -> pressedPaint
+        latched[index] -> latchedPaint
+        else -> normal
+    }
 
     /** Releases every held Key, e.g. when the Page is left or the app goes to the background. */
     fun releaseAll() {

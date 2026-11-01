@@ -1,7 +1,11 @@
 package com.duddex.faderling
 
-/** Settings of the Keyboard: MIDI channel (1–16) and the fixed velocity of every Note On (1–127). */
-data class KeyboardSettings(val channel: Int = 1, val velocity: Int = 100) {
+/** Settings of the Keyboard: MIDI channel (1–16), the fixed velocity of every Note On (1–127) and the Arp. */
+data class KeyboardSettings(
+    val channel: Int = 1,
+    val velocity: Int = 100,
+    val arp: ArpSettings = ArpSettings(),
+) {
     companion object {
         val VELOCITY_RANGE = 1..127
     }

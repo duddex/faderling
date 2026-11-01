@@ -42,6 +42,7 @@ class AssignmentStore(context: Context) {
         return KeyboardSettings(
             channel = prefs.getInt("keyboard_channel", default.channel),
             velocity = prefs.getInt("keyboard_velocity", default.velocity),
+            arp = loadArpSettings(),
         )
     }
 
@@ -49,7 +50,25 @@ class AssignmentStore(context: Context) {
         prefs.edit()
             .putInt("keyboard_channel", settings.channel)
             .putInt("keyboard_velocity", settings.velocity)
+            .putString("keyboard_arp_pattern", settings.arp.pattern.name)
+            .putInt("keyboard_arp_bpm", settings.arp.bpm)
+            .putString("keyboard_arp_rate", settings.arp.rate.name)
+            .putInt("keyboard_arp_octaves", settings.arp.octaves)
+            .putInt("keyboard_arp_gate", settings.arp.gatePercent)
             .apply()
+    }
+
+    private fun loadArpSettings(): ArpSettings {
+        val default = ArpSettings()
+        return ArpSettings(
+            pattern = prefs.getString("keyboard_arp_pattern", null)
+                ?.let { runCatching { ArpPattern.valueOf(it) }.getOrNull() } ?: default.pattern,
+            bpm = prefs.getInt("keyboard_arp_bpm", default.bpm).coerceIn(ArpSettings.BPM_RANGE),
+            rate = prefs.getString("keyboard_arp_rate", null)
+                ?.let { runCatching { ArpRate.valueOf(it) }.getOrNull() } ?: default.rate,
+            octaves = prefs.getInt("keyboard_arp_octaves", default.octaves).coerceIn(ArpSettings.OCTAVE_RANGE),
+            gatePercent = prefs.getInt("keyboard_arp_gate", default.gatePercent).coerceIn(ArpSettings.GATE_RANGE),
+        )
     }
 
     fun loadPads(): List<PadAssignment> = (0 until Pads.COUNT).map { i ->

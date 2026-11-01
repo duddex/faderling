@@ -11,6 +11,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.SeekBar
 import android.widget.TextView
 import java.net.Inet4Address
 import java.net.NetworkInterface
@@ -37,14 +38,29 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private lateinit var keyboardRange: TextView
     private lateinit var octaveDown: TextView
     private lateinit var octaveUp: TextView
+    private lateinit var holdButton: TextView
+    private lateinit var arpButton: TextView
+    private lateinit var arpEngine: ArpEngine
+    private lateinit var arpPatternValue: TextView
+    private lateinit var arpTempoValue: TextView
+    private lateinit var arpTempoBar: SeekBar
+    private lateinit var arpRateValue: TextView
+    private lateinit var arpOctavesValue: TextView
+    private lateinit var arpGateValue: TextView
+    private lateinit var arpGateBar: SeekBar
     private var keyboardSettings = KeyboardSettings()
     private var lowestNote = Keyboard.DEFAULT_LOWEST_NOTE
 
     /** Low screen (phone in landscape, split screen): one-octave Keyboard. */
     private val compact by lazy { ScreenLayout.isCompact(resources.configuration.screenHeightDp) }
 
-    /** Key index → note and channel it was started with, so its Note Off matches even after an octave shift. */
-    private val soundingNotes = HashMap<Int, Pair<Int, Int>>()
+    /** Keys currently down and the Notes latched by Hold; the Arp uses the same order. */
+    private val heldNotes = HeldNotes()
+    private var arpOn = false
+
+    /** Notes currently sounding as a normal chord (Arp off), so changes can be sent as a diff. */
+    private val chordNotes = HashSet<Int>()
+    private var chordChannel = 1
 
     private lateinit var padGrid: PadGridView
     private val lfoStrips = mutableListOf<LfoStripView>()
@@ -86,7 +102,12 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
         keyboardRange = findViewById(R.id.keyboardRange)
         octaveDown = findViewById<TextView>(R.id.octaveDown).apply { setOnClickListener { shiftOctave(-1) } }
         octaveUp = findViewById<TextView>(R.id.octaveUp).apply { setOnClickListener { shiftOctave(1) } }
+        holdButton = findViewById<TextView>(R.id.holdButton).apply { setOnClickListener { setHold(!heldNotes.hold) } }
+        arpButton = findViewById<TextView>(R.id.arpButton).apply { setOnClickListener { setArp(!arpOn) } }
+        arpEngine = ArpEngine(::noteOn, ::noteOff)
+        setUpArpGroup()
         showKeyboardRange()
+        showArp()
 
         padGrid = PadGridView(this).apply { listener = this@MainActivity }
         findViewById<FrameLayout>(R.id.padsPage).addView(padGrid)
@@ -128,7 +149,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
 
     private fun showPage(page: Int) {
         if (page != currentPage) {
-            keyboard.releaseAll()
+            stopKeyboard()
             padGrid.releaseAll()
         }
         currentPage = page
@@ -144,6 +165,7 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     private fun shiftOctave(octaves: Int) {
         lowestNote = Keyboard.shift(lowestNote, octaves, keyboard.keyCount)
         showKeyboardRange()
+        showLatched()
     }
 
     private fun showKeyboardRange() {
@@ -159,15 +181,158 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     }
 
     override fun onKeyPressed(index: Int) {
-        val note = lowestNote + index
-        val channel = keyboardSettings.channel
-        soundingNotes[index] = note to channel
-        noteOn(channel, note, keyboardSettings.velocity)
+        val notes = heldNotes.press(index, lowestNote + index)
+        if (arpOn) {
+            if (arpEngine.isRunning) arpEngine.updateNotes(notes) else startArp(notes)
+        } else {
+            syncChord()
+        }
+        showLatched()
     }
 
     override fun onKeyReleased(index: Int) {
-        val (note, channel) = soundingNotes.remove(index) ?: return
-        noteOff(channel, note)
+        val notes = heldNotes.release(index)
+        if (arpOn) arpEngine.updateNotes(notes) else syncChord()
+        showLatched()
+    }
+
+    private fun setHold(on: Boolean) {
+        val notes = heldNotes.setHold(on)
+        holdButton.isSelected = on
+        if (arpOn) arpEngine.updateNotes(notes) else syncChord()
+        showLatched()
+    }
+
+    private fun setArp(on: Boolean) {
+        if (arpOn == on) return
+        arpOn = on
+        arpButton.isSelected = on
+        if (on) {
+            releaseChord()
+            val notes = heldNotes.notes()
+            if (notes.isNotEmpty()) startArp(notes)
+        } else {
+            arpEngine.stop()
+            syncChord()
+        }
+    }
+
+    private fun startArp(notes: List<Int>) {
+        arpEngine.start(notes, keyboardSettings.arp, keyboardSettings.channel, keyboardSettings.velocity)
+    }
+
+    private fun setUpArpGroup() {
+        arpPatternValue = findViewById(R.id.arpPatternValue)
+        arpTempoValue = findViewById(R.id.arpTempoValue)
+        arpTempoBar = findViewById(R.id.arpTempoBar)
+        arpRateValue = findViewById(R.id.arpRateValue)
+        arpOctavesValue = findViewById(R.id.arpOctavesValue)
+        arpGateValue = findViewById(R.id.arpGateValue)
+        arpGateBar = findViewById(R.id.arpGateBar)
+
+        findViewById<LinearLayout>(R.id.arpPatternCell).setOnClickListener {
+            val values = ArpPattern.entries
+            val next = values[(keyboardSettings.arp.pattern.ordinal + 1) % values.size]
+            applyArp(keyboardSettings.arp.copy(pattern = next), save = true)
+        }
+        findViewById<LinearLayout>(R.id.arpRateCell).setOnClickListener {
+            val values = ArpRate.entries
+            val next = values[(keyboardSettings.arp.rate.ordinal + 1) % values.size]
+            applyArp(keyboardSettings.arp.copy(rate = next), save = true)
+        }
+        findViewById<LinearLayout>(R.id.arpOctavesCell).setOnClickListener {
+            val next = if (keyboardSettings.arp.octaves >= ArpSettings.OCTAVE_RANGE.last) {
+                ArpSettings.OCTAVE_RANGE.first
+            } else {
+                keyboardSettings.arp.octaves + 1
+            }
+            applyArp(keyboardSettings.arp.copy(octaves = next), save = true)
+        }
+
+        arpTempoBar.max = ArpSettings.BPM_RANGE.last - ArpSettings.BPM_RANGE.first
+        arpTempoBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                applyArp(keyboardSettings.arp.copy(bpm = ArpSettings.BPM_RANGE.first + progress), save = false)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                store.saveKeyboard(keyboardSettings)
+            }
+        })
+
+        arpGateBar.max = ArpSettings.GATE_RANGE.last - ArpSettings.GATE_RANGE.first
+        arpGateBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                applyArp(keyboardSettings.arp.copy(gatePercent = ArpSettings.GATE_RANGE.first + progress), save = false)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                store.saveKeyboard(keyboardSettings)
+            }
+        })
+    }
+
+    /** Applies a change from the Arp group on the Keyboard Page, optionally saving it immediately. */
+    private fun applyArp(arp: ArpSettings, save: Boolean) {
+        keyboardSettings = keyboardSettings.copy(arp = arp)
+        if (save) store.saveKeyboard(keyboardSettings)
+        arpEngine.updateSettings(arp)
+        showArp()
+    }
+
+    private fun showArp() {
+        val arp = keyboardSettings.arp
+        arpPatternValue.text = patternLabel(this, arp.pattern)
+        arpRateValue.text = arp.rate.label
+        arpOctavesValue.text = getString(R.string.arp_number, arp.octaves)
+        arpTempoValue.text = getString(R.string.arp_number, arp.bpm)
+        arpGateValue.text = getString(R.string.arp_gate_value, arp.gatePercent)
+        arpTempoBar.progress = arp.bpm - ArpSettings.BPM_RANGE.first
+        arpGateBar.progress = arp.gatePercent - ArpSettings.GATE_RANGE.first
+    }
+
+    /** Sounds the held Notes as a chord (Arp off), sending only the difference to what is already on. */
+    private fun syncChord() {
+        if (arpOn) return
+        val channel = keyboardSettings.channel
+        if (chordNotes.isNotEmpty() && channel != chordChannel) releaseChord()
+        val target = heldNotes.notes().toSet()
+        chordNotes.filter { it !in target }.forEach { noteOff(chordChannel, it) }
+        target.filter { it !in chordNotes }.forEach { noteOn(channel, it, keyboardSettings.velocity) }
+        chordNotes.clear()
+        chordNotes.addAll(target)
+        chordChannel = channel
+    }
+
+    private fun releaseChord() {
+        chordNotes.forEach { noteOff(chordChannel, it) }
+        chordNotes.clear()
+    }
+
+    /** Stops the Arp and releases every Key and Note, e.g. when leaving the Page or the App. */
+    private fun stopKeyboard() {
+        keyboard.releaseAll()
+        arpEngine.stop()
+        releaseChord()
+        heldNotes.clear()
+        arpOn = false
+        arpButton.isSelected = false
+        holdButton.isSelected = false
+        showLatched()
+    }
+
+    private fun showLatched() {
+        val indices = heldNotes.latchedNotes().mapNotNull { note ->
+            val index = note - lowestNote
+            if (index in 0 until keyboard.keyCount) index else null
+        }.toSet()
+        keyboard.setLatched(indices)
     }
 
     override fun onPadPressed(index: Int) {
@@ -215,6 +380,9 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
             v.mode = a.mode
         }
         keyboardSettings = store.loadKeyboard()
+        arpEngine.setChannelVelocity(keyboardSettings.channel, keyboardSettings.velocity)
+        arpEngine.updateSettings(keyboardSettings.arp)
+        showArp()
         padAssignments = store.loadPads()
         padSettings = store.loadPadSettings()
         padGrid.names = padAssignments.map { it.name }
@@ -245,7 +413,8 @@ class MainActivity : Activity(), ControlListener, KeyboardView.Listener, PadGrid
     }
 
     override fun onPause() {
-        keyboard.releaseAll()
+        store.saveKeyboard(keyboardSettings)
+        stopKeyboard()
         padGrid.releaseAll()
         super.onPause()
     }

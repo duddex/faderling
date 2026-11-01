@@ -50,6 +50,7 @@ class SettingsActivity : Activity() {
         findViewById<View>(R.id.root).padForSystemBars()
         findViewById<ImageButton>(R.id.back).setOnClickListener { finish() }
         list = findViewById(R.id.list)
+        list.isFocusableInTouchMode = true
         scroll = findViewById(R.id.scroll)
         tabs = listOf(R.id.tabFaders, R.id.tabButtons, R.id.tabKeyboard, R.id.tabPads, R.id.tabLfos, R.id.tabXy).mapIndexed { p, id ->
             findViewById<TextView>(id).apply { setOnClickListener { showPage(p) } }
@@ -78,6 +79,7 @@ class SettingsActivity : Activity() {
             5 -> xySection(list)
         }
         scroll.scrollTo(0, 0)
+        list.requestFocus()
         updateWarnings()
     }
 
@@ -92,7 +94,7 @@ class SettingsActivity : Activity() {
     }
 
     private fun keyboardSection(list: LinearLayout) {
-        val settings = store.loadKeyboard()
+        var current = store.loadKeyboard()
         list.addView(text(getString(R.string.section_keyboard), Palette.ACCENT, 16f).apply { setPadding(0, dp(16), 0, dp(2)) })
         list.addView(LinearLayout(this).apply {
             addView(View(this@SettingsActivity), LinearLayout.LayoutParams(0, 0, 1f))
@@ -101,8 +103,8 @@ class SettingsActivity : Activity() {
             addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
         })
 
-        val velocity = edit(settings.velocity.toString(), InputType.TYPE_CLASS_NUMBER, 3)
-        val channel = edit(settings.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
+        val velocity = edit(current.velocity.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+        val channel = edit(current.channel.toString(), InputType.TYPE_CLASS_NUMBER, 2)
         val watcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -111,7 +113,10 @@ class SettingsActivity : Activity() {
                 val c = channel.text.toString().toIntOrNull()?.takeIf { it in Assignment.CHANNEL_RANGE }
                 velocity.error = if (v == null) getString(R.string.error_velocity) else null
                 channel.error = if (c == null) getString(R.string.error_channel) else null
-                if (v != null && c != null) store.saveKeyboard(KeyboardSettings(channel = c, velocity = v))
+                if (v != null && c != null) {
+                    current = current.copy(channel = c, velocity = v)
+                    store.saveKeyboard(current)
+                }
             }
         }
         velocity.addTextChangedListener(watcher)
@@ -124,6 +129,96 @@ class SettingsActivity : Activity() {
             addView(channel, LinearLayout.LayoutParams(dp(80), LinearLayout.LayoutParams.WRAP_CONTENT))
             addView(View(this@SettingsActivity), LinearLayout.LayoutParams(dp(MODE_WIDTH), 0))
         })
+
+        list.addView(text(getString(R.string.section_arpeggiator), Palette.ACCENT, 16f).apply { setPadding(0, dp(16), 0, dp(2)) })
+        list.addView(text(getString(R.string.arp_hint), Palette.TEXT_DIM, 13f))
+
+        val pattern = cycle(ArpPattern.entries.map { patternLabel(this, it) }, current.arp.pattern.ordinal) { index ->
+            current = current.copy(arp = current.arp.copy(pattern = ArpPattern.entries[index]))
+            store.saveKeyboard(current)
+        }
+        list.addView(labeledRow(getString(R.string.label_pattern), pattern))
+
+        val bpm = edit(current.arp.bpm.toString(), InputType.TYPE_CLASS_NUMBER, 3)
+        bpm.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val value = bpm.text.toString().toIntOrNull()?.takeIf { it in ArpSettings.BPM_RANGE }
+                bpm.error = if (value == null) getString(R.string.error_bpm) else null
+                if (value != null) {
+                    current = current.copy(arp = current.arp.copy(bpm = value))
+                    store.saveKeyboard(current)
+                }
+            }
+        })
+        list.addView(labeledRow(getString(R.string.label_tempo), bpm, getString(R.string.unit_bpm)))
+
+        val rate = cycle(ArpRate.entries.map { it.label }, current.arp.rate.ordinal) { index ->
+            current = current.copy(arp = current.arp.copy(rate = ArpRate.entries[index]))
+            store.saveKeyboard(current)
+        }
+        list.addView(labeledRow(getString(R.string.label_rate), rate))
+
+        val octaves = cycle(ArpSettings.OCTAVE_RANGE.map { it.toString() }, current.arp.octaves - 1) { index ->
+            current = current.copy(arp = current.arp.copy(octaves = index + 1))
+            store.saveKeyboard(current)
+        }
+        list.addView(labeledRow(getString(R.string.label_octaves), octaves))
+
+        val gate = edit(current.arp.gatePercent.toString(), InputType.TYPE_CLASS_NUMBER, 2)
+        gate.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val value = gate.text.toString().toIntOrNull()?.takeIf { it in ArpSettings.GATE_RANGE }
+                gate.error = if (value == null) getString(R.string.error_gate) else null
+                if (value != null) {
+                    current = current.copy(arp = current.arp.copy(gatePercent = value))
+                    store.saveKeyboard(current)
+                }
+            }
+        })
+        list.addView(labeledRow(getString(R.string.label_gate), gate, getString(R.string.unit_percent)))
+    }
+
+    private fun labeledRow(label: String, control: View, unit: String? = null): View = LinearLayout(this).apply {
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(0, dp(4), 0, 0)
+        addView(text(label, Palette.TEXT, 16f), LinearLayout.LayoutParams(dp(110), LinearLayout.LayoutParams.WRAP_CONTENT))
+        addView(control, LinearLayout.LayoutParams(dp(120), LinearLayout.LayoutParams.WRAP_CONTENT))
+        if (unit != null) {
+            addView(
+                text(unit, Palette.TEXT_DIM, 13f),
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginStart = dp(8) },
+            )
+        } else {
+            addView(View(this@SettingsActivity), LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+    }
+
+    /** A button that cycles through [values] on every tap. */
+    private fun cycle(values: List<String>, initialIndex: Int, onChanged: (Int) -> Unit): TextView {
+        val view = TextView(this).apply {
+            gravity = Gravity.CENTER
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setTextColor(Palette.TEXT)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(6).toFloat()
+                setStroke(dp(1), Palette.TEXT_DIM)
+            }
+        }
+        var index = initialIndex.coerceIn(0, values.lastIndex)
+        fun show() {
+            view.text = values[index]
+        }
+        show()
+        view.setOnClickListener {
+            index = (index + 1) % values.size
+            show()
+            onChanged(index)
+        }
+        return view
     }
 
     private fun padsSection(list: LinearLayout) {
