@@ -4,6 +4,8 @@ All notable changes to Faderling are documented here. The format follows [Keep a
 
 ## [Unreleased]
 
+## [1.3.0] – 2026-11-01
+
 ### Added
 
 - Faders Page: each fader has a Max (0–127, default 100) in the Faders settings. Touching or sliding along the values at the top sets faders to their Max instead of always 127; dragging a fader still goes up to 127.
