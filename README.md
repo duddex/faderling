@@ -112,7 +112,9 @@ This [VCV Rack](https://vcvrack.com/) 2 patch shows the **Faders**, **Buttons** 
 - **Buttons** – a second *MIDI-CC to CV* module receives CC 110–117 and drives 8 *Push* modules, which light up while a button is on.
 - **LFOs** – a third *MIDI-CC to CV* module receives CC 102–109 and drives 8 more *VCA-1* modules, whose meters move with the running LFOs.
 
-After opening the patch, select your rtpMIDI session port as the MIDI device in each of the three *MIDI-CC to CV* modules.
+After opening the patch, select your MIDI session port as the MIDI device in each of the three *MIDI-CC to CV* modules.
+
+**Without rtpMIDI:** VCV Rack has no network MIDI – its MIDI modules read the MIDI inputs of the operating system. The bridge [AppleMIDI2MIDI](https://github.com/duddex/AppleMIDI2MIDI) therefore needs a virtual loopback port to forward into: create one in [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html), run `python applemidi2midi.py --to "loopMIDI Port"`, and select that port in the three modules instead of an rtpMIDI session port. CC numbers and channels pass through unchanged, so the patch needs no other change.
 
 ## Known issues
 
